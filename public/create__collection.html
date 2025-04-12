@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./icons/Logo-new2025.png">
+    <script src="./create__collection.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header__cont">
+                <div class="header__logo">
+                    <a href="./main.html"><img src="./icons/Logo 2.png" alt="Logo" style="max-width: 70%;"></a>
+                </div>
+                <div class="header__links">
+                    <p><a href="./main.html" class="links__for__header">Главная</a></p>
+                    <p><a href="./articles.html" class="links__for__header">Статьи</a></p>
+                    <p><a href="./profileUser.html" class="links__for__header">Личный кабинет</a></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="slide__create__coll">
+                <h3 class="title">Создать коллекцию</h3>
+                <div class="create">
+                    <input type="text" id="collectionTitle" placeholder="Название коллекции">
+                    <textarea id="collectionDescription" placeholder="Описание коллекции"></textarea>
+                    <button onclick="createCollection()">Создать коллекцию</button>
+                </div>
+
+                <div class="collections">
+                    <h2 class="title">Коллекции</h2>
+                    <ul id="collectionList" style="display: flex; justify-content: space-around;"></ul>
+
+                    <div id="cardSection" style="display:none;">
+                        <h2 class="pop">Создание карточек</h2>
+                        <input type="text" id="cardWord" placeholder="Слово">
+                        <input type="text" id="cardTranslation" placeholder="Перевод">
+                        <button onclick="createCard()">Добавить карточку</button>
+                        <h3 class="pop">Карточки в коллекции</h3>
+                        <ul id="cardList"></ul>
+                        <button onclick="saveCollection()">Сохранить коллекцию</button>
+                        <button onclick="goBack()">Назад к коллекциям</button>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="header__cont">
+                <p>создано для производственной практики</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

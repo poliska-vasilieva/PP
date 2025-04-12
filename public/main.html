@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./icons/Logo-new2025.png">
+    <script src="./main.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header__cont">
+                <div class="header__logo">
+                    <a href="./main.html"><img src="./icons/Logo 2.png" alt="Logo" style="max-width: 70%;"></a>
+                </div>
+                <div class="header__links">
+                    <p><a href="./main.html" class="links__for__header">Главная</a></p>
+                    <p><a href="./articles.html" class="links__for__header">Статьи</a></p>
+                    <p><a href="./profileUser.html" class="links__for__header">Личный кабинет</a></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <div class="slide__main">
+                <div><a href="./create__collection.html"><button>Создать коллекцию</button></a></div>
+
+                <ul id="collectionList"></ul>
+                <div id="checkSection" style="display:none;">
+                    <h2 class="title">Проверка карточек</h2>
+                    <div class="proverka">
+                        <div id="checkCard"></div>
+                        <div class="prov__button">
+                            <button onclick="checkAnswer(true)">Верно</button>
+                            <button onclick="checkAnswer(false)">Неверно</button>
+                        </div>
+                    </div>
+                    <div id="statistics"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="header__cont">
+                <p>создано для производственной практики</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

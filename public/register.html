@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./icons/Logo-new2025.png">
+    <script src="./register.js" defer></script>
+</head>
+
+<body>
+    <main>
+        <div class="container">
+            <section class="register__login">
+                <div class="register__login__logo">
+                    <img src="./icons/Logo-new2025.png" alt="Logo">
+                </div>
+                <div class="for__forma">
+                    <h1 class="naming">Слово врача</h1>
+                    <div class="forma">
+                        <input type="text" name="nickname" id="nickname" placeholder="Имя пользователя" required>
+                        <input type="email" name="email" id="email" placeholder="Электронная почта" required>
+                        <input type="password" name="password" id="password" placeholder="Пароль" required>
+
+                        <select id="role">
+                            <option value="user">Пользователь</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+
+                        <button id="registerButton">Зарегистрироваться</button>
+                    </div>
+
+                    <p class="two__links"><a href="./login.html" class="reg__log__links">Войти, если есть аккаунт</a>
+                    </p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+</body>
+
+</html>
