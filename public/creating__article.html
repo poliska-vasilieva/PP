@@ -7,6 +7,7 @@
     <title>Создание статьи</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/Logo-new2025.png">
+    <script src="./creating__article.js" defer></script>
 </head>
 
 <body>
@@ -27,33 +28,16 @@
 
     <section>
         <div class="container">
-            <div>
-                <h2>Список статей</h2>
-                <button>Создать статью</button>
-                <div
-                    style="border: dotted #454545 1px; display: flex; flex-direction: row; justify-content: space-between;">
-                    <div style="background-color: #969696;">
-                        <p>фото</p>
-                    </div>
-                    <div style="background-color: #969696;">
-                        <p>слово</p>
-                    </div>
-                    <button style="border-radius: 50%;">редактировать</button>
-                    <button style="border-radius: 50%;">удалить</button>
-                </div>
-
-                <div
-                    style="border: dotted #454545 1px; display: flex; flex-direction: row; justify-content: space-between;">
-                    <div style="background-color: #969696;">
-                        <p>фото</p>
-                    </div>
-                    <div style="background-color: #969696;">
-                        <p>слово</p>
-                    </div>
-                    <button style="border-radius: 50%;">редактировать</button>
-                    <button style="border-radius: 50%;">удалить</button>
-                </div>
-
+            <div class="article__slide">
+                <h2 class="title">Создать статью</h2>
+                <form id="articleForm" enctype="multipart/form-data">
+                    <input type="file" name="image">
+                    <input type="text" name="title" placeholder="Название" required>
+                    <textarea name="content" placeholder="Содержание" required></textarea>
+                    <button type="submit">Создать</button>
+                </form>
+                <h2 class="title">Статьи</h2>
+                <ul id="articleList"></ul>
             </div>
         </div>
     </section>

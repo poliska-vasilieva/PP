@@ -2,6 +2,7 @@ document.getElementById('registerButton').addEventListener('click', () => {
     let nickname = document.getElementById('nickname').value.trim();
     let email = document.getElementById('email').value.trim();
     let password = document.getElementById('password').value;
+    let role = document.getElementById('role').value;
 
     const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+$/; 
     if (!nicknameRegex.test(nickname)) {
@@ -24,7 +25,7 @@ document.getElementById('registerButton').addEventListener('click', () => {
         nickname,
         email,
         password,
-        role: 'user'
+        role
     };
 
     fetch('/register', {

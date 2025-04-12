@@ -120,8 +120,8 @@ button {
     gap: 100px;
 }
 
-.slide__main, .slide__create__coll {
-    margin: 100px;
+.slide__main, .slide__create__coll, .article__slide {
+    margin: 90px;
 }
 
 li {
@@ -197,4 +197,25 @@ textarea {
     font-size: 20px;
     color: #1F537E;
     font-weight: 700;
+}
+
+.article__li {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 30px;
+}
+
+#articleList {
+    border: dotted #2377D3 3px;
+    padding: 20px;
+    margin: 30px 0;
+}
+
+#articleForm {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 30px;
+    margin: 70px 0;
 }

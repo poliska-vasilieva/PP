@@ -5,6 +5,7 @@ const path = require('path');
 const { Sequelize, DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 
 const app = express();
 const port = 3000;
@@ -59,6 +60,21 @@ const Collection = sequelize.define('Collection', {
     description: {
         type: DataTypes.TEXT,
         allowNull: true
+    }
+});
+
+const Article = sequelize.define('Article', {
+    title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    content: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
+    image: {
+        type: DataTypes.STRING,
+        allowNull: true,
     }
 });
 
@@ -197,6 +213,54 @@ app.get('/collections/:collectionId/check', async (req, res) => {
     const cards = await Card.findAll({ where: { CollectionId: collectionId } });
     res.json(cards);
 });
+
+// Настройка загрузки файлов
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage });
+
+// Получение всех статей
+app.get('/api/articles', async (req, res) => {
+    const articles = await Article.findAll();
+    res.json(articles);
+});
+
+// Создание статьи
+app.post('/api/articles', upload.single('image'), async (req, res) => {
+    const { title, content } = req.body;
+    const image = req.file ? req.file.filename : null;
+    await Article.create({ title, content, image });
+    res.status(201).json({ message: 'Article created' });
+});
+
+// Удаление статьи
+app.delete('/api/articles/:id', async (req, res) => {
+    const { id } = req.params;
+    await Article.destroy({ where: { id } });
+    res.status(204).send();
+});
+
+// Редактирование статьи
+app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
+    const { id } = req.params;
+    const { title, content } = req.body;
+    const image = req.file ? req.file.filename : null;
+
+    await Article.update(
+        { title, content, image },
+        { where: { id } }
+    );
+
+    res.json({ message: 'Article updated' });
+});
+
 
 app.listen(port, () => {
     console.log(`Сервер запущен на http://localhost:${port}`);
