@@ -32,7 +32,7 @@ async function loadCollections() {
         // Создаем кнопку "Добавить карточки"
         const addButton = document.createElement('button');
         addButton.textContent = "Добавить карточки";
-        addButton.setAttribute('onclick', `loadCards(${collection.id})`); 
+        addButton.setAttribute('onclick', `loadCards(${collection.id})`);
         li.appendChild(addButton);
 
         collectionList.appendChild(li);

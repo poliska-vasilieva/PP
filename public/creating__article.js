@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}" style="width: 100px;">` : ''}
                         <h3>${article.title}</h3>
                         <p>${article.content}</p> 
-                        <button onclick="deleteArticle(${article.id})">Delete</button>
-                        <button onclick="editArticle(${article.id}, '${article.title}', '${article.content}')">Edit</button>
+                        <button onclick="deleteArticle(${article.id})">Удалить</button>
+                        <button onclick="editArticle(${article.id}, '${article.title}', '${article.content}')">Редактировать</button>
                     `;
             articleList.appendChild(li);
         });
