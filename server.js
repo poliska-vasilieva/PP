@@ -69,17 +69,30 @@ const Article = sequelize.define('Article', {
     title: {
         type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+            notEmpty: {
+                msg: "Заголовок не может быть пустым"
+            },
+            len: {
+                args: [3, 255],
+                msg: "Заголовок должен быть длиной от 3 до 255 символов"
+            }
+        }
     },
     content: {
         type: DataTypes.TEXT,
         allowNull: false,
+        validate: {
+            notEmpty: {
+                msg: "Содержимое не может быть пустым"
+            }
+        }
     },
     image: {
         type: DataTypes.STRING,
         allowNull: true,
     }
 });
-
 // Связь между пользователями и карточками
 User.hasMany(Card);
 Card.belongsTo(User);
@@ -247,52 +260,130 @@ app.get('/collections/:collectionId/check', async (req, res) => {
     res.json(cards);
 });
 
-// Настройка загрузки файлов
+// Настройка Multer для загрузки файлов
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/uploads/');
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Папка для сохранения загруженных файлов
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
-const upload = multer({ storage });
+const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Недопустимый формат файла. Разрешены только изображения (jpeg, png, gif).'));
+        }
+    }
+});
+
+const errorHandler = (err, req, res, next) => {
+    console.error(err.stack);
+
+    if (err instanceof multer.MulterError) {
+        return res.status(400).json({ message: err.message });
+    }
+
+    res.status(500).json({ message: err.message || 'Что-то пошло не так!' });
+};
 
 // Получение всех статей
 app.get('/api/articles', async (req, res) => {
-    const articles = await Article.findAll();
-    res.json(articles);
+    try {
+        const articles = await Article.findAll();
+        res.json(articles);
+    } catch (error) {
+        console.error('Ошибка при получении статей:', error);
+        res.status(500).json({ message: 'Не удалось получить статьи.' });
+    }
 });
 
 // Создание статьи
 app.post('/api/articles', upload.single('image'), async (req, res) => {
-    const { title, content } = req.body;
-    const image = req.file ? req.file.filename : null;
-    await Article.create({ title, content, image });
-    res.status(201).json({ message: 'Article created' });
+    try {
+        const { title, content } = req.body;
+
+        // Валидация данных на сервере (если валидация Sequelize не работает)
+        if (!title || title.trim() === '') {
+            return res.status(400).json({ message: "Заголовок не может быть пустым" });
+        }
+        if (!content || content.trim() === '') {
+            return res.status(400).json({ message: "Содержимое не может быть пустым" });
+        }
+
+        const image = req.file ? req.file.filename : null;
+        const article = await Article.create({ title, content, image });
+        res.status(201).json({ message: 'Статья успешно создана!', article: article });
+    } catch (error) {
+        console.error('Ошибка при создании статьи:', error);
+        // Обработка ошибок валидации Sequelize
+        if (error.name === 'SequelizeValidationError') {
+            const messages = error.errors.map(err => err.message);
+            return res.status(400).json({ message: messages.join(', ') });
+        }
+        res.status(500).json({ message: 'Не удалось создать статью.' });
+    }
 });
 
 // Удаление статьи
 app.delete('/api/articles/:id', async (req, res) => {
-    const { id } = req.params;
-    await Article.destroy({ where: { id } });
-    res.status(204).send();
+    try {
+        const { id } = req.params;
+        const deletedRows = await Article.destroy({ where: { id } });
+
+        if (deletedRows === 0) {
+            return res.status(404).json({ message: 'Статья не найдена.' });
+        }
+
+        res.status(204).send(); // No Content - успешное удаление
+    } catch (error) {
+        console.error('Ошибка при удалении статьи:', error);
+        res.status(500).json({ message: 'Не удалось удалить статью.' });
+    }
 });
 
 // Редактирование статьи
 app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
-    const { id } = req.params;
-    const { title, content } = req.body;
-    const image = req.file ? req.file.filename : null;
+    try {
+        const { id } = req.params;
+        const { title, content } = req.body;
+        const image = req.file ? req.file.filename : null;
 
-    await Article.update(
-        { title, content, image },
-        { where: { id } }
-    );
+        //Валидация
+          if (!title || title.trim() === '') {
+            return res.status(400).json({ message: "Заголовок не может быть пустым" });
+        }
+        if (!content || content.trim() === '') {
+            return res.status(400).json({ message: "Содержимое не может быть пустым" });
+        }
 
-    res.json({ message: 'Article updated' });
+        const [updatedRows] = await Article.update(
+            { title, content, image },
+            { where: { id } }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({ message: 'Статья не найдена.' });
+        }
+
+        res.json({ message: 'Статья успешно обновлена!' });
+    } catch (error) {
+        console.error('Ошибка при обновлении статьи:', error);
+        if (error.name === 'SequelizeValidationError') {
+            const messages = error.errors.map(err => err.message);
+            return res.status(400).json({ message: messages.join(', ') });
+        }
+        res.status(500).json({ message: 'Не удалось обновить статью.' });
+    }
 });
+
+app.use(errorHandler); // Подключаем обработчик ошибок
 
 
 app.listen(port, () => {
