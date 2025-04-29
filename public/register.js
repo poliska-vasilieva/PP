@@ -1,55 +1,47 @@
-document.getElementById('registerButton').addEventListener('click', () => {
-    let nickname = document.getElementById('nickname').value.trim();
-    let email = document.getElementById('email').value.trim();
-    let password = document.getElementById('password').value;
-    let role = document.getElementById('role').value;
+document.getElementById('registerButton').addEventListener('click', async (event) => {
+    event.preventDefault();
 
-    const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+$/; 
+    const nickname = document.getElementById('nickname').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value; // Получаем роль из формы
+
+    const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+$/;
     if (!nicknameRegex.test(nickname)) {
         alert("Имя должно состоять только из букв.");
         return;
     }
 
-    const emailRegex = /^[^@]+@[^@]+.[^@]+$/; 
+    const emailRegex = /^[^@]+@[^@]+.[^@]+$/;
     if (!emailRegex.test(email)) {
         alert("Пожалуйста, введите корректный адрес электронной почты.");
         return;
     }
 
-    if (password.length < 9) { 
+    if (password.length < 9) {
         alert("Пароль должен содержать минимум 9 символов.");
         return;
     }
 
-    let data = {
-        nickname,
-        email,
-        password,
-        role
-    };
-
-    fetch('/register', {
-        method: "POST",
-        body: JSON.stringify(data),
+    const response = await fetch('/register', {
+        method: 'POST',
         headers: {
-            "Content-Type": "application/json"
-        }
-    }).then(response => {
-        if (response.status === 409) {
-            alert("Аккаунт с такой почтой уже существует!");
-            return;
-        }
-        if (response.status === 201) { 
-            return response.json(); 
-        } else {
-            alert("Произошла ошибка. Пожалуйста, попробуйте еще раз."); 
-        }
-    }).then(data => {
-        if (data && data.redirect) {
-            window.location.href = data.redirect;
-        }
-    }).catch(error => {
-        console.error("Ошибка при регистрации:", error); 
-        alert("Произошла ошибка. Пожалуйста, попробуйте еще раз.");
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nickname, email, password, role }) // Отправляем роль
     });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        if (data.token && data.role && data.redirect) { // Проверяем наличие redirect
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('role', data.role);
+            window.location.href = data.redirect; // Используем URL для перенаправления
+        } else {
+            alert('Ошибка: отсутствует токен, роль или URL для редиректа.');
+        }
+    } else {
+        alert(data.error || 'Неизвестная ошибка.');
+    }
 });

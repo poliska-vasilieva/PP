@@ -114,6 +114,17 @@ button:hover {
     text-align: center;
 }
 
+.title__big {
+    font-size: 45px;
+}
+
+.title__little {
+    text-align: center;
+    font-size: 28px;
+    color: #2C6485;
+    max-width: 400px;
+}
+
 .inp {
     width: 360px;
 }
@@ -224,21 +235,22 @@ textarea {
 
 .index__main {
     background-color: #F9F9F9;
-    padding: 50px;
+    padding: 30px;
     border-radius: 90px;
-    margin: 40px 0;
+    margin: 15px 0;
 }
 
 .index__main__blocks {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: center;
 }
 
 .second {
     display: flex;
     flex-direction: row;
-    gap: 100px;
+    gap: 50px;
 }
 
 .index__main__first {
@@ -256,7 +268,6 @@ textarea {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    max-width: 650px;
 }
 
 .one {
@@ -266,6 +277,7 @@ textarea {
     border-radius: 60px;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
 }
 
 .two {
@@ -274,12 +286,14 @@ textarea {
     display: flex;
     flex-direction: column;
     border-radius: 60px;
+    gap: 10px;
+    align-items: center;
 }
 
 .index__main__second {
     display: flex;
     flex-direction: column;
-    gap: 50px;
+    gap: 20px;
 }
 
 .index__container {
@@ -291,4 +305,18 @@ textarea {
     max-width: 225px;
     font-size: 26px;
     color: #2C6485;
+}
+
+.second__text {
+    max-width: 220px;
+    font-size: 22px;
+    color: #F9F9F9;
+    text-align: center;
+}
+
+.third__text {
+    max-width: 200px;
+    font-size: 22px;
+    color: #2C6485;
+    text-align: center;
 }
