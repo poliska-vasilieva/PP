@@ -25,12 +25,14 @@ const User = sequelize.define('User', {
     nickname: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
     },
     email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
+        validate: {
+            isEmail: true
+        }
     },
     password: {
         type: DataTypes.STRING,
@@ -41,7 +43,6 @@ const User = sequelize.define('User', {
         allowNull: false
     }
 });
-
 
 const Card = sequelize.define('Card', {
     word: {
@@ -117,54 +118,25 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-app.get('/profileAdmin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'profileAdmin.html'));
-});
-
-app.get('/profileStudent', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'profileStudent.html'));
-});
-
-app.get('/profileTeacher', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'profileTeacher.html'));
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
 
 app.post('/register', async (req, res) => {
     const { nickname, email, password, role } = req.body;
-    console.log("Полученные данные:", { nickname, email, password, role }); // Проверяем данные
-
     try {
-        console.log("Начинаем поиск существующего пользователя...");
         const existingUser = await User.findOne({ where: { email: email } });
-        console.log("Результат поиска существующего пользователя:", existingUser);
-
         if (existingUser) {
             return res.status(409).json({ error: 'Аккаунт с такой почтой уже существует!' });
         }
-
-        console.log("Начинаем хэширование пароля...");
+        
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("Хэшированный пароль:", hashedPassword);
-
-        console.log("Начинаем создание пользователя...");
         const user = await User.create({ nickname, email, password: hashedPassword, role });
-        console.log("Созданный пользователь:", user);
-
-        // Создание токена
-        console.log("Начинаем создание токена...");
+        
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-        console.log("Созданный токен:", token);
-
-        let redirectUrl = '/profileStudent'; // Default
-        if (role === 'teacher') {
-            redirectUrl = '/profileTeacher';
-        } else if (role === 'admin') {
-            redirectUrl = '/profileAdmin';
-        }
-
-        res.status(201).json({ message: 'Пользователь успешно прошел регистрацию!', token, role, redirect: redirectUrl }); // Отправляем redirect
+        res.status(201).json({ message: 'Пользователь успешно прошел регистрацию!', token: token, role: user.role }); // Изменено на user.role
     } catch (error) {
-        console.error("Произошла ошибка:", error); // Логирование ошибки на сервере
+        console.error("Произошла ошибка:", error);
         res.status(500).json({ error: 'Произошла ошибка на сервере.' });
     }
 });
@@ -172,27 +144,35 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
+    console.log("Полученные данные для входа:", { email, password }); // Проверка полученных данных
 
     try {
+        console.log("Начинаем поиск пользователя по электронной почте...");
         const user = await User.findOne({ where: { email } });
+        console.log("Результат поиска пользователя:", user);
+
         if (!user) {
             return res.status(401).json({ error: 'Неверный логин или пароль!' });
         }
 
+        console.log("Начинаем сравнение пароля...");
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            console.log("Пароль не совпадает"); // Добавлено логирование
             return res.status(401).json({ error: 'Неверный логин или пароль!' });
         }
 
         // Создание токена
-        const token = jwt.sign({ id: user.id, role: user.role }, 'your_secret_key', { expiresIn: '1h' });
+        console.log("Начинаем создание токена...");
+        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+        console.log("Созданный токен:", token);
 
-        res.json({ message: 'Успешный вход!', token, role: user.role });
+        res.json({ message: 'Успешный вход!', token, role: user.role }); // Ответ с токеном и ролью
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error("Произошла ошибка при входе:", error); // Логирование ошибки на сервере
+        res.status(500).json({ error: 'Произошла ошибка на сервере.' });
     }
 });
-
 
 app.post('/updateProfile', async (request, response) => {
     const { nickname, email, password, newPassword } = request.body;
@@ -205,9 +185,9 @@ app.post('/updateProfile', async (request, response) => {
 
     if (newPassword) {
         if (user.password !== password) {
-            return response.sendStatus(403); 
+            return response.sendStatus(403);
         }
-        user.password = newPassword; 
+        user.password = newPassword;
     }
 
     user.nickname = nickname;
@@ -356,7 +336,7 @@ app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
         const image = req.file ? req.file.filename : null;
 
         //Валидация
-          if (!title || title.trim() === '') {
+        if (!title || title.trim() === '') {
             return res.status(400).json({ message: "Заголовок не может быть пустым" });
         }
         if (!content || content.trim() === '') {

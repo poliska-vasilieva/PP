@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
             articleList.addEventListener('click', handleArticleActions);
 
         } catch (error) {
-            console.error('Ошибка при загрузке статей:', error);
+            console.error(`Ошибка при загрузке статей:, error`);
             displayErrorMessage('Не удалось загрузить статьи.'); // Покажем сообщение об ошибке
         }
     };
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         try {
             const formData = new FormData(articleForm);
-            const response = await fetch(`/api/articles`, {
+            const response = await fetch('/api/articles', {
                 method: 'POST',
                 body: formData,
             });
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displaySuccessMessage('Статья успешно создана!');
 
         } catch (error) {
-            console.error('Ошибка при создании статьи:', error);
+            console.error(`Ошибка при создании статьи:, error`);
             displayErrorMessage('Не удалось создать статью.'); // Покажем сообщение об ошибке
         }
     });
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (target.classList.contains('delete-btn')) {
             const id = target.dataset.id;
             try {
-                const response = await fetch(`/api/articles/${id}`, {
+                const response = await fetch('/api/articles/${id}', {
                     method: 'DELETE',
                 });
 
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displaySuccessMessage('Статья успешно удалена!');
 
             } catch (error) {
-                console.error('Ошибка при удалении статьи:', error);
+                console.error(`Ошибка при удалении статьи:, error`);
                 displayErrorMessage('Не удалось удалить статью.'); // Покажем сообщение об ошибке
             }
         } else if (target.classList.contains('edit-btn')) {
@@ -107,8 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (!response.ok) {
-                  const errorData = await response.json();
-                  throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
 
                 articleForm.reset();
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Вспомогательная функция для экранирования HTML
     function escapeHTML(string) {
-        return string.replace(/[&<>"']/g, function(m) {
+        return string.replace(/[&<>"']/g, function (m) {
             switch (m) {
                 case '&':
                     return '&amp;';

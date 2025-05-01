@@ -14,9 +14,9 @@ async function loadCollections() {
         const li = document.createElement('li');
         li.textContent = `${collection.title} - ${collection.description}`;
 
-        // Создаем кнопку "Проверить карточки"
+        // Создаем кнопку "Проверить знания"
         const checkButton = document.createElement('button');
-        checkButton.textContent = "Проверить карточки";
+        checkButton.textContent = "Проверить знания";
         checkButton.setAttribute('onclick', `startCheck(${collection.id})`);
         li.appendChild(checkButton);
 
