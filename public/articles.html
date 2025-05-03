@@ -29,8 +29,79 @@
         <div class="container">
             <div class="articles">
                 <h2 class="title">Статьи</h2>
-                <ul id="articleList"></ul>
+                <div class="slider-container">
+                    <div class="slider">
+                        <div class="slide">
+                            <div><img src="./icons/image1.png" alt="Image 1"></div>
+                            <div class="slide-content">
+                                <h2 class="h2__slider">До начала XVIII века латынь была языком науки, поэтому все медицинские тексты
+                                    писались на нём</h2>
+                                <p class="p__slider">Именно поэтому, все значимые медицинские тексты той эпохи создавались исключительно
+                                    на латинском языке. Знание латыни считалось обязательным для любого образованного
+                                    человека, претендующего на научную деятельность. Медицинские трактаты, анатомические
+                                    атласы, фармацевтические справочники - все они писались на латыни, что обеспечивало
+                                    их доступность и понятность для врачей и ученых по всему континенту. </p>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <div><img src="./icons/image2.png" alt="Image 2"></div>
+                            <div class="slide-content">
+                                <h2 class="h2__slider">Современный врач, даже когда говорит на профессиональную тему по-русски, употребляет
+                                    более 60% слов латинского и греческого происхождения</h2>
+                                <p class="p__slider">Этот факт свидетельствует о неразрывной связи современной медицины с ее историческими
+                                    корнями. Латинские и греческие термины не просто являются частью профессионального
+                                    жаргона, а служат основой для точного и однозначного описания анатомических
+                                    структур, физиологических процессов и патологических состояний, обеспечивая
+                                    эффективность коммуникации между специалистами.</p>
+                            </div>
+                        </div>
+                        <div class="slide">
+                            <div> <img src="./icons/image3.png" alt="Image 3"></div>
+                            <div class="slide-content">
+                                <h2 class="h2__slider">Изучение латинского языка способствует развитию аналитического мышления и внимания к
+                                    деталям</h2>
+                                <p class="p__slider">Латинский язык требует строгого соблюдения грамматических правил и логической
+                                    структуры предложений. Разбирая сложные латинские тексты, будущий врач учится
+                                    выявлять закономерности, анализировать информацию и делать точные выводы, что
+                                    непосредственно влияет на его способность к постановке диагноза и выбору
+                                    оптимального лечения. Эта тренировка в точности и анализе крайне полезна в
+                                    медицинской практике, где каждая деталь может иметь решающее значение для здоровья
+                                    пациента.</p>
+                            </div>
+                        </div>
+                    </div>
 
+                    <button class="prev-button" onclick="prevSlide()">&#10094;</button> <!-- Previous Button -->
+                    <button class="next-button" onclick="nextSlide()">&#10095;</button> <!-- Next Button -->
+                </div>
+                <script>
+                    let slideIndex = 0;
+                    const slides = document.querySelectorAll('.slide');
+                    const slider = document.querySelector('.slider');
+
+                    function showSlide() {
+                        if (slideIndex >= slides.length) {
+                            slideIndex = 0; // Loop back to the first slide
+                        }
+                        if (slideIndex < 0) {
+                            slideIndex = slides.length - 1; // Loop to the last slide
+                        }
+                        slider.style.transform = `translateX(-${slideIndex * 100}%)`;
+                    }
+
+
+                    function nextSlide() {
+                        slideIndex++;
+                        showSlide();
+                    }
+
+                    function prevSlide() {
+                        slideIndex--;
+                        showSlide();
+                    }
+
+                    showSlide(); // Show the first slide on page load.
+                </script>
             </div>
         </div>
     </section>

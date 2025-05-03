@@ -43,7 +43,8 @@ body {
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    margin: 20px 0 0;
+    margin: 20px 0;
+    padding: 20px 0;
 }
 
 .header__links {
@@ -336,9 +337,69 @@ textarea {
     text-align: center;
 }
 
+.slider-container {
+    width: 85%;
+    margin: 10px auto;
+    overflow: hidden;  
+    position: relative; 
+}
 
+.slider {
+    display: flex;   
+    transition: transform 0.5s ease-in-out;
+}
 
+.slide {
+    flex: 0 0 100%; 
+    display: flex;  
+    align-items: center;
+    justify-content: space-evenly;; 
+}
 
+.slide img {
+    max-width: 340px;
+    height: auto;    
+    object-fit: cover; 
+    border-radius: 20px;
+}
+
+.slide-content {
+    width: 45%;
+    box-sizing: border-box;
+}
+
+.prev-button, .next-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #2c648588;
+    color: #F9F9F9;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.prev-button {
+    left: 10px;
+}
+
+.next-button {
+    right: 10px;
+}
+
+.prev-button:hover, .next-button:hover {
+    background-color: #22303F;
+}
+
+.h2__slider {
+    padding-bottom: 15px;
+    color: #22303F;
+}
+
+.p__slider {
+    color: #22303F;
+    font-size: 20px;
+}
 
 
 @media screen and (max-width: 1024px) {
@@ -369,6 +430,18 @@ textarea {
     .register__login {
         flex-direction: column;
     }
+
+    .slide {
+        flex-direction: column;
+    }
+
+    .slide-content {
+        width: 75%;
+    }
+
+    .slide img {
+        max-width: 420px;
+    }
 }
 
 @media screen and (max-width: 768px) {
@@ -376,7 +449,10 @@ textarea {
     .container {
         max-width: 700px;
     }
-
+    .slide img {
+        max-width: 280px;
+    }
+    
 }
 
 @media screen and (max-width: 576px) {
@@ -392,5 +468,9 @@ textarea {
     .first {
         flex-direction: column;
         gap: 40px;
+    }
+
+    .p__slider {
+        display: none;
     }
 }
