@@ -21,7 +21,7 @@ document.getElementById('loginButton').addEventListener('click', async (event) =
             localStorage.setItem('role', data.role);
             
             // Перенаправление на соответствующую страницу
-            window.location.href = '/main.html'; // или другая страница
+            window.location.href = '/profile.html'; // или другая страница
         } else {
             alert(data.error);
         }

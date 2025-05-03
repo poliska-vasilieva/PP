@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль администратора</title>
+    <title>Профиль</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/icon.svg">
     <script src="./profile.js" defer></script>
@@ -19,6 +19,7 @@
                 </div>
                 <div class="header__links">
                     <p><a href="./articles.html" class="links__for__header">Статьи</a></p>
+                    <p><a href="./profile.html" class="links__for__header">Профиль</a></p>
                 </div>
             </div>
         </div>
@@ -30,50 +31,19 @@
                 <h1 class="title">Профиль</h1>
                 <input type="text" name="nickname" id="nickname" placeholder="Имя" class="input inp">
                 <input type="email" name="email" id="email" placeholder="Электронная почта" class="input inp">
-                <input type="password" name="currentPassword" id="currentPassword" placeholder="Текущий пароль"
-                    class="input inp">
-                <input type="password" name="newPassword" id="newPassword"
-                    placeholder="(оставьте пустым, если не хотите менять)" class="input inp">
+                <input type="password" name="currentPassword" id="currentPassword" placeholder="Текущий пароль" class="input inp">
+                <input type="password" name="newPassword" id="newPassword" placeholder="(оставьте пустым, если не хотите менять)" class="input inp">
                 <button id="saveButton">Сохранить изменения</button>
                 <button id="ButtonLogOut">Выйти</button>
-
                 <button id="teacherButton" style="display: none;">Кнопка для учителя</button>
                 <button id="studentButton" style="display: none;">Кнопка для студента</button>
                 <button id="adminButton" style="display: none;">Кнопка для админа</button>
             </div>
-
             <script>
-                // Получаем роль пользователя из localStorage
-                const userRole = localStorage.getItem('role');
-
-                // Функция для отображения и удаления кнопок в зависимости от роли
-                function displayButtonsBasedOnRole(role) {
-                    const teacherButton = document.getElementById('teacherButton');
-                    const studentButton = document.getElementById('studentButton');
-                    const adminButton = document.getElementById('adminButton');
-
-                    // Сначала удаляем кнопки, которые не соответствуют роли
-                    if (role !== 'teacher') {
-                        teacherButton.remove(); // Удаляем кнопку учителя, если роль не учитель
-                    } else {
-                        teacherButton.style.display = 'block'; // Показываем кнопку учителя
-                    }
-
-                    if (role !== 'student') {
-                        studentButton.remove(); // Удаляем кнопку студента, если роль не студент
-                    } else {
-                        studentButton.style.display = 'block'; // Показываем кнопку студента
-                    }
-
-                    if (role !== 'admin') {
-                        adminButton.remove(); // Удаляем кнопку админа, если роль не админ
-                    } else {
-                        adminButton.style.display = 'block'; // Показываем кнопку админа
-                    }
-                }
-
-                // Вызываем функцию с ролью пользователя
-                displayButtonsBasedOnRole(userRole);
+                document.getElementById('ButtonLogOut').addEventListener('click', function () {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                });
             </script>
         </div>
     </section>

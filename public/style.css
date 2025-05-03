@@ -44,7 +44,6 @@ body {
     justify-content: space-around;
     align-items: center;
     margin: 20px 0 0;
-    padding: 20px 0;
 }
 
 .header__links {
@@ -80,7 +79,7 @@ button {
     background-color: #2C6485;
     border-radius: 30px;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
     color: white;
     padding: 15px;
 }
@@ -110,6 +109,7 @@ button:hover {
     align-items: center;
     margin: 20px 0;
     gap: 15px;
+    padding-bottom: 20px;
 }
 
 .title {
@@ -346,6 +346,29 @@ textarea {
     .container {
         max-width: 960px;
     }
+
+    .index__main__blocks {
+        flex-direction: column;
+    }
+    .index__main__logo {
+        display: none;
+    }
+
+    .index__main__first {
+        padding-bottom: 30px;
+    }
+
+    .index__container {
+        max-width: 900px;
+    }
+
+    button {
+        font-size: 23px;
+    }
+
+    .register__login {
+        flex-direction: column;
+    }
 }
 
 @media screen and (max-width: 768px) {
@@ -361,5 +384,13 @@ textarea {
     .container {
         max-width: 370px;
     }
+
+    .second {
+        display: none;
+    }
     
+    .first {
+        flex-direction: column;
+        gap: 40px;
+    }
 }

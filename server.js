@@ -124,78 +124,89 @@ app.get('/profile', (req, res) => {
 
 app.post('/register', async (req, res) => {
     const { nickname, email, password, role } = req.body;
+
+    if (!nickname || !email || !password || !role) {
+        return res.status(400).json({ error: 'Все поля обязательны для заполнения!' });
+    }
+
     try {
         const existingUser = await User.findOne({ where: { email: email } });
         if (existingUser) {
             return res.status(409).json({ error: 'Аккаунт с такой почтой уже существует!' });
         }
-        
-        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const hashedPassword = await bcrypt.hash(password, 12);
         const user = await User.create({ nickname, email, password: hashedPassword, role });
-        
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-        res.status(201).json({ message: 'Пользователь успешно прошел регистрацию!', token: token, role: user.role }); // Изменено на user.role
+        res.status(201).json({ message: 'Пользователь успешно прошел регистрацию!', token, role: user.role });
     } catch (error) {
         console.error("Произошла ошибка:", error);
         res.status(500).json({ error: 'Произошла ошибка на сервере.' });
     }
 });
 
-
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    console.log("Полученные данные для входа:", { email, password }); // Проверка полученных данных
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email и пароль обязательны для входа!' });
+    }
 
     try {
-        console.log("Начинаем поиск пользователя по электронной почте...");
         const user = await User.findOne({ where: { email } });
-        console.log("Результат поиска пользователя:", user);
-
         if (!user) {
             return res.status(401).json({ error: 'Неверный логин или пароль!' });
         }
 
-        console.log("Начинаем сравнение пароля...");
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log("Пароль не совпадает"); // Добавлено логирование
             return res.status(401).json({ error: 'Неверный логин или пароль!' });
-        }
-
-        // Создание токена
-        console.log("Начинаем создание токена...");
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-        console.log("Созданный токен:", token);
-
-        res.json({ message: 'Успешный вход!', token, role: user.role }); // Ответ с токеном и ролью
+        } const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
+        res.status(200).json({ message: 'Успешный вход!', token, role: user.role });
     } catch (error) {
-        console.error("Произошла ошибка при входе:", error); // Логирование ошибки на сервере
+        console.error("Произошла ошибка при входе:", error);
         res.status(500).json({ error: 'Произошла ошибка на сервере.' });
     }
 });
 
 app.post('/updateProfile', async (request, response) => {
-    const { nickname, email, password, newPassword } = request.body;
-    const user = await User.findOne({ where: { email } });
-
-    if (!user) {
-
-        return response.sendStatus(404);
+    const { nickname, email, currentPassword, newPassword } = request.body; // Исправлено: Получаем currentPassword
+  
+    if (!nickname || !email) {
+      return response.status(400).json({ message: 'Имя и электронная почта обязательны для заполнения' }); // Отправляем JSON ответ с сообщением
     }
-
-    if (newPassword) {
-        if (user.password !== password) {
-            return response.sendStatus(403);
-        }
-        user.password = newPassword;
+  
+    try {
+      const user = await User.findOne({ where: { email } });
+      if (!user) {
+        return response.sendStatus(404); // Пользователь не найден
+      }
+  
+      // Проверяем текущий пароль
+      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!passwordMatch) {
+        return response.sendStatus(403); // Ошибка доступа, текущий пароль неверен
+      }
+  
+      // Обновляем данные пользователя
+      user.nickname = nickname;
+      user.email = email;
+  
+      // Хэшируем новый пароль, если он предоставлен
+      if (newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 - salt rounds
+        user.password = hashedPassword; // Сохраняем хэшированный пароль
+      }
+  
+      await user.save();
+      response.sendStatus(200); // Успешное обновление данных
+  
+    } catch (error) {
+      console.error("Ошибка при обновлении профиля:", error);
+      return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
     }
+  });
 
-    user.nickname = nickname;
-    user.email = email;
-    await user.save();
-
-    response.sendStatus(200);
-});
 
 // Создание коллекции
 app.post('/collections', async (req, res) => {
