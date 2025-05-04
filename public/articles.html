@@ -70,37 +70,31 @@
                             </div>
                         </div>
                     </div>
-
-                    <button class="prev-button" onclick="prevSlide()">&#10094;</button> <!-- Previous Button -->
-                    <button class="next-button" onclick="nextSlide()">&#10095;</button> <!-- Next Button -->
+                    <button class="prev-button" onclick="prevSlide()">&#10094;</button> <!-- кнопка назад -->
+                    <button class="next-button" onclick="nextSlide()">&#10095;</button> <!-- кнопка вперед -->
                 </div>
                 <script>
                     let slideIndex = 0;
                     const slides = document.querySelectorAll('.slide');
                     const slider = document.querySelector('.slider');
-
                     function showSlide() {
                         if (slideIndex >= slides.length) {
-                            slideIndex = 0; // Loop back to the first slide
+                            slideIndex = 0; 
                         }
                         if (slideIndex < 0) {
-                            slideIndex = slides.length - 1; // Loop to the last slide
+                            slideIndex = slides.length - 1;
                         }
                         slider.style.transform = `translateX(-${slideIndex * 100}%)`;
                     }
-
-
                     function nextSlide() {
                         slideIndex++;
                         showSlide();
                     }
-
                     function prevSlide() {
                         slideIndex--;
                         showSlide();
                     }
-
-                    showSlide(); // Show the first slide on page load.
+                    showSlide(); // показать первый слайд
                 </script>
             </div>
         </div>

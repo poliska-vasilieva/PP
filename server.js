@@ -169,45 +169,56 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/profile/data', async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1];
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const userId = decodedToken.id;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+        return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    res.json(user);
+});
+
 app.post('/updateProfile', async (request, response) => {
     const { nickname, email, currentPassword, newPassword } = request.body; // Исправлено: Получаем currentPassword
-  
+
     if (!nickname || !email) {
-      return response.status(400).json({ message: 'Имя и электронная почта обязательны для заполнения' }); // Отправляем JSON ответ с сообщением
+        return response.status(400).json({ message: 'Имя и электронная почта обязательны для заполнения' }); // Отправляем JSON ответ с сообщением
     }
-  
+
     try {
-      const user = await User.findOne({ where: { email } });
-      if (!user) {
-        return response.sendStatus(404); // Пользователь не найден
-      }
-  
-      // Проверяем текущий пароль
-      const passwordMatch = await bcrypt.compare(currentPassword, user.password);
-      if (!passwordMatch) {
-        return response.sendStatus(403); // Ошибка доступа, текущий пароль неверен
-      }
-  
-      // Обновляем данные пользователя
-      user.nickname = nickname;
-      user.email = email;
-  
-      // Хэшируем новый пароль, если он предоставлен
-      if (newPassword) {
-        const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 - salt rounds
-        user.password = hashedPassword; // Сохраняем хэшированный пароль
-      }
-  
-      await user.save();
-      response.sendStatus(200); // Успешное обновление данных
-  
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return response.sendStatus(404); // Пользователь не найден
+        }
+
+        // Проверяем текущий пароль
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return response.sendStatus(403); // Ошибка доступа, текущий пароль неверен
+        }
+
+        // Обновляем данные пользователя
+        user.nickname = nickname;
+        user.email = email;
+
+        // Хэшируем новый пароль, если он предоставлен
+        if (newPassword) {
+            const hashedPassword = await bcrypt.hash(newPassword, 10); // 10 - salt rounds
+            user.password = hashedPassword; // Сохраняем хэшированный пароль
+        }
+
+        await user.save();
+        response.sendStatus(200); // Успешное обновление данных
+
     } catch (error) {
-      console.error("Ошибка при обновлении профиля:", error);
-      return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
+        console.error("Ошибка при обновлении профиля:", error);
+        return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
     }
-  });
-
-
+});
 // Создание коллекции
 app.post('/collections', async (req, res) => {
     const { title, description } = req.body;
