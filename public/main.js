@@ -5,23 +5,74 @@ let correctCount = 0;
 let incorrectCount = 0;
 
 async function loadCollections() {
-    const response = await fetch('http://localhost:3000/collections');
-    const collections = await response.json();
-    const collectionList = document.getElementById('collectionList');
-    collectionList.innerHTML = '';
+    const token = localStorage.getItem('token');
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    
+    try {
+        const response = await fetch('http://localhost:3000/collections', {
+            headers
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке коллекций');
+        }
+        
+        const collections = await response.json();
+        const collectionList = document.getElementById('collectionList');
+        collectionList.innerHTML = '';
 
-    collections.forEach(collection => {
-        const li = document.createElement('li');
-        li.textContent = `${collection.title} - ${collection.description}`;
+        collections.forEach(collection => {
+            const li = document.createElement('li');
+            li.textContent = `${collection.title} - ${collection.description || 'без описания'}`;
 
-        // Создаем кнопку "Проверить знания"
-        const checkButton = document.createElement('button');
-        checkButton.textContent = "Проверить знания";
-        checkButton.setAttribute('onclick', `startCheck(${collection.id})`);
-        li.appendChild(checkButton);
+            // Кнопка для проверки знаний
+            const checkButton = document.createElement('button');
+            checkButton.textContent = "Проверить знания";
+            checkButton.onclick = () => startCheck(collection.id);
+            li.appendChild(checkButton);
 
-        collectionList.appendChild(li);
-    });
+            // Для студентов - кнопка добавить в избранное
+            if (token) {
+                const decoded = JSON.parse(atob(token.split('.')[1]));
+                if (decoded.role === 'student' && collection.isPublic) {
+                    const favoriteButton = document.createElement('button');
+                    favoriteButton.textContent = "Добавить в избранное";
+                    favoriteButton.onclick = () => addToFavorites(collection.id);
+                    li.appendChild(favoriteButton);
+                }
+            }
+
+            collectionList.appendChild(li);
+        });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(error.message);
+    }
+}
+
+async function addToFavorites(collectionId) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`http://localhost:3000/collections/${collectionId}/clone`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при добавлении в избранное');
+        }
+
+        alert('Коллекция добавлена в избранное');
+        loadCollections();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(error.message);
+    }
 }
 
 async function loadCards(collectionId) {

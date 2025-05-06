@@ -177,3 +177,12 @@ async function fetchUserProfile(token) {
     console.error("Ошибка при запросе данных профиля:", error);
   }
 }
+
+// В конец файла profile.js добавить:
+document.getElementById('teacherButton').addEventListener('click', function() {
+  window.location.href = '/create__collection.html';
+});
+
+document.getElementById('studentButton').addEventListener('click', function() {
+  window.location.href = '/main.html';
+});

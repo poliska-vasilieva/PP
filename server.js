@@ -58,10 +58,23 @@ const Card = sequelize.define('Card', {
 const Collection = sequelize.define('Collection', {
     title: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        validate: {
+            notEmpty: {
+                msg: "Название коллекции не может быть пустым"
+            }
+        }
     },
     description: {
         type: DataTypes.TEXT,
+        allowNull: true
+    },
+    isPublic: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    userId: {
+        type: DataTypes.INTEGER,
         allowNull: true
     }
 });
@@ -219,47 +232,252 @@ app.post('/updateProfile', async (request, response) => {
         return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
     }
 });
-// Создание коллекции
+// Создание коллекции (только для учителей)
 app.post('/collections', async (req, res) => {
-    const { title, description } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
     try {
-        const collection = await Collection.create({ title, description });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'teacher') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const { title, description } = req.body;
+        if (!title) {
+            return res.status(400).json({ error: 'Название коллекции обязательно' });
+        }
+
+        const collection = await Collection.create({ 
+            title, 
+            description, 
+            isPublic: true,
+            userId: decoded.id
+        });
         res.json(collection);
     } catch (error) {
         res.status(400).json({ error: 'Ошибка при создании коллекции' });
     }
 });
 
-// Получение всех коллекций
-app.get('/collections', async (req, res) => {
-    const collections = await Collection.findAll();
-    res.json(collections);
-});
+// Создание личной коллекции (для студентов)
+app.post('/personal-collections', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
 
-// Создание карточки в коллекции
-app.post('/collections/:collectionId/cards', async (req, res) => {
-    const { collectionId } = req.params;
-    const { word, translation } = req.body;
     try {
-        const card = await Card.create({ word, translation, CollectionId: collectionId });
-        res.json(card);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const { title, description } = req.body;
+        if (!title) {
+            return res.status(400).json({ error: 'Название коллекции обязательно' });
+        }
+
+        const collection = await Collection.create({ 
+            title, 
+            description, 
+            isPublic: false,
+            userId: decoded.id
+        });
+        res.json(collection);
     } catch (error) {
-        res.status(400).json({ error: 'Ошибка при создании карточки' });
+        res.status(400).json({ error: 'Ошибка при создании коллекции' });
     }
 });
 
-// Получение всех карточек в коллекции
-app.get('/collections/:collectionId/cards', async (req, res) => {
-    const { collectionId } = req.params;
-    const cards = await Card.findAll({ where: { CollectionId: collectionId } });
-    res.json(cards);
+// Получение коллекций (публичные + личные для авторизованных пользователей)
+app.get('/collections', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    try {
+        let whereCondition = { isPublic: true };
+        
+        if (token) {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+            whereCondition = {
+                [Sequelize.Op.or]: [
+                    { isPublic: true },
+                    { userId: decoded.id }
+                ]
+            };
+        }
+        
+        const collections = await Collection.findAll({ where: whereCondition });
+        res.json(collections);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении коллекций' });
+    }
 });
 
-// Получение карточек для проверки
-app.get('/collections/:collectionId/check', async (req, res) => {
-    const { collectionId } = req.params;
-    const cards = await Card.findAll({ where: { CollectionId: collectionId } });
-    res.json(cards);
+app.post('/collections/:id/clone', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'student') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const originalCollection = await Collection.findByPk(req.params.id, {
+            include: [Card]
+        });
+
+        if (!originalCollection) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        // Создаем копию коллекции
+        const newCollection = await Collection.create({
+            title: `Копия: ${originalCollection.title}`,
+            description: originalCollection.description,
+            isPublic: false,
+            userId: decoded.id
+        });
+
+        // Копируем карточки
+        const cardsToCreate = originalCollection.Cards.map(card => ({
+            word: card.word,
+            translation: card.translation,
+            CollectionId: newCollection.id
+        }));
+
+        await Card.bulkCreate(cardsToCreate);
+
+        res.json(newCollection);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при клонировании коллекции' });
+    }
+});
+
+// Обновление карточки
+app.put('/cards/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { word, translation } = req.body;
+
+        if (!word || !translation) {
+            return res.status(400).json({ error: 'Слово и перевод обязательны' });
+        }
+
+        const [updated] = await Card.update(
+            { word, translation },
+            { where: { id } }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({ error: 'Карточка не найдена' });
+        }
+
+        res.json({ message: 'Карточка обновлена' });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при обновлении карточки' });
+    }
+});
+
+// Удаление карточки
+app.delete('/cards/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deleted = await Card.destroy({ where: { id } });
+
+        if (deleted === 0) {
+            return res.status(404).json({ error: 'Карточка не найдена' });
+        }
+
+        res.status(204).end();
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при удалении карточки' });
+    }
+});
+
+// Обновление коллекции с проверкой прав
+app.put('/collections/:id', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const { id } = req.params;
+        const { title, description } = req.body;
+
+        if (!title) {
+            return res.status(400).json({ error: 'Название коллекции обязательно' });
+        }
+
+        // Находим коллекцию
+        const collection = await Collection.findByPk(id);
+        if (!collection) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        // Проверяем права:
+        // 1. Админ может редактировать любую коллекцию
+        // 2. Учитель может редактировать только свои коллекции
+        // 3. Студент может редактировать только свои коллекции
+        if (decoded.role !== 'admin' && 
+            (decoded.role === 'student' || collection.userId !== decoded.id)) {
+            return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
+        }
+
+        const [updated] = await Collection.update(
+            { title, description },
+            { where: { id } }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        res.json({ message: 'Коллекция обновлена' });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при обновлении коллекции' });
+    }
+});
+
+// Удаление коллекции
+app.delete('/collections/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Удаляем все карточки коллекции
+        await Card.destroy({ where: { CollectionId: id } });
+        
+        // Удаляем саму коллекцию
+        const deleted = await Collection.destroy({ where: { id } });
+
+        if (deleted === 0) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        res.status(204).end();
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при удалении коллекции' });
+    }
+});
+
+app.get('/collections/:id/check-edit', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const { id } = req.params;
+
+        const collection = await Collection.findByPk(id);
+        if (!collection) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        // Проверяем права:
+        if (decoded.role !== 'admin' && 
+            (decoded.role === 'student' || collection.userId !== decoded.id)) {
+            return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
+        }
+
+        res.json({ canEdit: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при проверке прав' });
+    }
 });
 
 // Настройка Multer для загрузки файлов
