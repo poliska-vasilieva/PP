@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пользователи</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Список пользователей</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Никнейм</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+    </table>
+
+    <script>
+        async function fetchUsers() {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+            const userTableBody = document.getElementById('userTableBody');
+
+            // Очистим таблицу перед заполнением
+            userTableBody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.nickname}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>
+                        <button onclick="deleteUser(${user.id})">Удалить</button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+        }
+
+        async function deleteUser(userId) {
+            const confirmation = confirm('Вы уверены, что хотите удалить этого пользователя?');
+            if (confirmation) {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    alert('Пользователь успешно удалён');
+                    fetchUsers(); // Обновляем список пользователей
+                } else {
+                    alert('Не удалось удалить пользователя');
+                }
+            }
+        }
+
+        // Загружаем пользователей при загрузке страницы
+        window.onload = fetchUsers;
+    </script>
+</body>
+</html>
