@@ -29,18 +29,26 @@
         <div class="container">
             <div class="profile">
                 <h1 class="title">Профиль</h1>
-                <input type="text" name="nickname" id="nickname" placeholder="Имя" class="input inp">
-                <input type="email" name="email" id="email" placeholder="Электронная почта" class="input inp">
-                <input type="password" name="currentPassword" id="currentPassword" placeholder="Текущий пароль" class="input inp">
-                <input type="password" name="newPassword" id="newPassword" placeholder="(оставьте пустым, если не хотите менять)" class="input inp">
-                <button id="saveButton">Сохранить изменения</button>
-                <button id="ButtonLogOut">Выйти</button>
-                <button id="teacherButton" style="display: none;">Кнопка для учителя</button>
-                <button id="studentButton" style="display: none;">Кнопка для студента</button>
-                <button id="adminButton" style="display: none;">Кнопка для админа</button>
+                <input type="text" id="nickname" placeholder="Имя" class="input inp">
+                <input type="email" id="email" placeholder="Электронная почта" class="input inp">
+                <input type="password" id="currentPassword" placeholder="Текущий пароль" class="input inp">
+                <input type="password" id="newPassword" placeholder="Новый пароль (оставьте пустым, если не меняется)" class="input inp">
+                
+                <div class="buttons">
+                    <button id="saveButton" class="btn-primary">Сохранить изменения</button>
+                    <button id="ButtonLogOut" class="btn-secondary">Выйти</button>
+                    <button id="teacherButton" class="btn-role">Панель учителя</button>
+                    <button id="studentButton" class="btn-role">Мои тесты</button>
+                    <button id="adminButton" class="btn-role">Админ-панель</button>
+                </div>
+                
+                <!-- Добавлен раздел для истории тестов -->
+                <div id="testHistory" class="test-history"></div>
             </div>
+            
             <script>
-                document.getElementById('ButtonLogOut').addEventListener('click', function () {
+                // Перенесен из отдельного тега script в profile.js
+                document.getElementById('ButtonLogOut').addEventListener('click', () => {
                     localStorage.removeItem('token');
                     window.location.href = '/login';
                 });

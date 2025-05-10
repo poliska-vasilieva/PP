@@ -115,6 +115,27 @@ Card.belongsTo(User);
 Collection.hasMany(Card);
 Card.belongsTo(Collection);
 
+const TestResult = sequelize.define('TestResult', {
+    correctCount: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    incorrectCount: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    incorrectWords: {
+        type: DataTypes.JSON,
+        allowNull: false
+    }
+});
+
+// Добавьте связи
+User.hasMany(TestResult);
+TestResult.belongsTo(User);
+Collection.hasMany(TestResult);
+TestResult.belongsTo(Collection);
+
 sequelize.sync().then(() => {
     console.log('Database & tables created!');
 });
@@ -232,7 +253,6 @@ app.post('/updateProfile', async (request, response) => {
         return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
     }
 });
-// Создание коллекции (только для учителей)
 app.post('/collections', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -260,7 +280,6 @@ app.post('/collections', async (req, res) => {
     }
 });
 
-// Создание личной коллекции (для студентов)
 app.post('/personal-collections', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -284,7 +303,6 @@ app.post('/personal-collections', async (req, res) => {
     }
 });
 
-// Получение коллекций (публичные + личные для авторизованных пользователей)
 app.get('/collections', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     
@@ -299,12 +317,60 @@ app.get('/collections', async (req, res) => {
                     { userId: decoded.id }
                 ]
             };
-        }
-        
+        }        
         const collections = await Collection.findAll({ where: whereCondition });
         res.json(collections);
     } catch (error) {
         res.status(500).json({ error: 'Ошибка при получении коллекций' });
+    }
+});
+
+app.post('/collections/:id/cards', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const { word, translation } = req.body;
+        const collectionId = req.params.id;
+
+        if (!word || !translation) {
+            return res.status(400).json({ error: 'Слово и перевод обязательны' });
+        }
+
+        // Проверяем, существует ли коллекция и есть ли права на добавление карточек
+        const collection = await Collection.findByPk(collectionId);
+        if (!collection) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        // Проверяем права: только владелец или админ могут добавлять карточки
+        if (decoded.role !== 'admin' && collection.userId !== decoded.id) {
+            return res.status(403).json({ error: 'Нет прав для добавления карточек в эту коллекцию' });
+        }
+
+        const card = await Card.create({
+            word,
+            translation,
+            CollectionId: collectionId,
+            UserId: decoded.id
+        });
+
+        res.status(201).json(card);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при создании карточки' });
+    }
+});
+
+app.get('/collections/:id/cards', async (req, res) => {
+    try {
+        const collectionId = req.params.id;
+        const cards = await Card.findAll({
+            where: { CollectionId: collectionId }
+        });
+        res.json(cards);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении карточек' });
     }
 });
 
@@ -326,7 +392,6 @@ app.post('/collections/:id/clone', async (req, res) => {
             return res.status(404).json({ error: 'Коллекция не найдена' });
         }
 
-        // Создаем копию коллекции
         const newCollection = await Collection.create({
             title: `Копия: ${originalCollection.title}`,
             description: originalCollection.description,
@@ -334,7 +399,6 @@ app.post('/collections/:id/clone', async (req, res) => {
             userId: decoded.id
         });
 
-        // Копируем карточки
         const cardsToCreate = originalCollection.Cards.map(card => ({
             word: card.word,
             translation: card.translation,
@@ -349,7 +413,6 @@ app.post('/collections/:id/clone', async (req, res) => {
     }
 });
 
-// Обновление карточки
 app.put('/cards/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -374,7 +437,6 @@ app.put('/cards/:id', async (req, res) => {
     }
 });
 
-// Удаление карточки
 app.delete('/cards/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -390,7 +452,6 @@ app.delete('/cards/:id', async (req, res) => {
     }
 });
 
-// Обновление коллекции с проверкой прав
 app.put('/collections/:id', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -404,16 +465,10 @@ app.put('/collections/:id', async (req, res) => {
             return res.status(400).json({ error: 'Название коллекции обязательно' });
         }
 
-        // Находим коллекцию
         const collection = await Collection.findByPk(id);
         if (!collection) {
             return res.status(404).json({ error: 'Коллекция не найдена' });
         }
-
-        // Проверяем права:
-        // 1. Админ может редактировать любую коллекцию
-        // 2. Учитель может редактировать только свои коллекции
-        // 3. Студент может редактировать только свои коллекции
         if (decoded.role !== 'admin' && 
             (decoded.role === 'student' || collection.userId !== decoded.id)) {
             return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
@@ -480,26 +535,118 @@ app.get('/collections/:id/check-edit', async (req, res) => {
     }
 });
 
-// Настройка Multer для загрузки файлов
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Папка для сохранения загруженных файлов
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+// Добавьте этот маршрут в server.js
+app.post('/collections/:id/statistics', async (req, res) => {
+    try {
+        const { correctCount, incorrectCount } = req.body;
+        // Здесь можно сохранять статистику в базу данных, если нужно
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при сохранении статистики' });
     }
 });
 
-const upload = multer({
-    storage: storage,
-    fileFilter: function (req, file, cb) {
-        const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (allowedMimes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Недопустимый формат файла. Разрешены только изображения (jpeg, png, gif).'));
+app.get('/collections/:id/statistics', async (req, res) => {
+    try {
+        // Здесь можно получать статистику из базы данных
+        res.json({ correct: 0, incorrect: 0 }); // Заглушка - замените реальными данными
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении статистики' });
+    }
+});
+
+app.post('/test-results', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const { collectionId, correctCount, incorrectCount, incorrectWords } = req.body;
+
+        const testResult = await TestResult.create({
+            correctCount,
+            incorrectCount,
+            incorrectWords,
+            UserId: decoded.id,
+            CollectionId: collectionId
+        });
+
+        res.status(201).json(testResult);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при сохранении результатов теста' });
+    }
+});
+
+app.get('/test-results', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        
+        const testResults = await TestResult.findAll({
+            where: { UserId: decoded.id },
+            include: [Collection],
+            order: [['createdAt', 'DESC']],
+            limit: 3
+        });
+
+        res.json(testResults);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении истории тестов' });
+    }
+});
+
+// Добавьте этот маршрут перед errorHandler
+app.get('/api/users', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
         }
+
+        const users = await User.findAll({
+            where: {
+                role: ['student', 'teacher']
+            },
+            attributes: ['id', 'nickname', 'email', 'role'],
+            order: [['role', 'ASC'], ['nickname', 'ASC']]
+        });
+
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении пользователей' });
+    }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const userId = req.params.id;
+        const deleted = await User.destroy({
+            where: {
+                id: userId,
+                role: ['student', 'teacher'] // Админов нельзя удалять
+            }
+        });
+
+        if (deleted === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден или нельзя удалить' });
+        }
+
+        res.status(204).end();
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при удалении пользователя' });
     }
 });
 
@@ -513,97 +660,7 @@ const errorHandler = (err, req, res, next) => {
     res.status(500).json({ message: err.message || 'Что-то пошло не так!' });
 };
 
-// Получение всех статей
-app.get('/api/articles', async (req, res) => {
-    try {
-        const articles = await Article.findAll();
-        res.json(articles);
-    } catch (error) {
-        console.error('Ошибка при получении статей:', error);
-        res.status(500).json({ message: 'Не удалось получить статьи.' });
-    }
-});
-
-// Создание статьи
-app.post('/api/articles', upload.single('image'), async (req, res) => {
-    try {
-        const { title, content } = req.body;
-
-        // Валидация данных на сервере (если валидация Sequelize не работает)
-        if (!title || title.trim() === '') {
-            return res.status(400).json({ message: "Заголовок не может быть пустым" });
-        }
-        if (!content || content.trim() === '') {
-            return res.status(400).json({ message: "Содержимое не может быть пустым" });
-        }
-
-        const image = req.file ? req.file.filename : null;
-        const article = await Article.create({ title, content, image });
-        res.status(201).json({ message: 'Статья успешно создана!', article: article });
-    } catch (error) {
-        console.error('Ошибка при создании статьи:', error);
-        // Обработка ошибок валидации Sequelize
-        if (error.name === 'SequelizeValidationError') {
-            const messages = error.errors.map(err => err.message);
-            return res.status(400).json({ message: messages.join(', ') });
-        }
-        res.status(500).json({ message: 'Не удалось создать статью.' });
-    }
-});
-
-// Удаление статьи
-app.delete('/api/articles/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedRows = await Article.destroy({ where: { id } });
-
-        if (deletedRows === 0) {
-            return res.status(404).json({ message: 'Статья не найдена.' });
-        }
-
-        res.status(204).send(); // No Content - успешное удаление
-    } catch (error) {
-        console.error('Ошибка при удалении статьи:', error);
-        res.status(500).json({ message: 'Не удалось удалить статью.' });
-    }
-});
-
-// Редактирование статьи
-app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, content } = req.body;
-        const image = req.file ? req.file.filename : null;
-
-        //Валидация
-        if (!title || title.trim() === '') {
-            return res.status(400).json({ message: "Заголовок не может быть пустым" });
-        }
-        if (!content || content.trim() === '') {
-            return res.status(400).json({ message: "Содержимое не может быть пустым" });
-        }
-
-        const [updatedRows] = await Article.update(
-            { title, content, image },
-            { where: { id } }
-        );
-
-        if (updatedRows === 0) {
-            return res.status(404).json({ message: 'Статья не найдена.' });
-        }
-
-        res.json({ message: 'Статья успешно обновлена!' });
-    } catch (error) {
-        console.error('Ошибка при обновлении статьи:', error);
-        if (error.name === 'SequelizeValidationError') {
-            const messages = error.errors.map(err => err.message);
-            return res.status(400).json({ message: messages.join(', ') });
-        }
-        res.status(500).json({ message: 'Не удалось обновить статью.' });
-    }
-});
-
-app.use(errorHandler); // Подключаем обработчик ошибок
+app.use(errorHandler);
 
 
 app.listen(port, () => {

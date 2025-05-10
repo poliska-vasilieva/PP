@@ -36,12 +36,17 @@
                     <h2 class="title">Проверка карточек</h2>
                     <div class="proverka">
                         <div id="checkCard"></div>
+                        <div id="translation" style="display: none; margin: 10px 0;"></div>
                         <div class="prov__button">
                             <button onclick="checkAnswer(true)">Верно</button>
                             <button onclick="checkAnswer(false)">Неверно</button>
                         </div>
                     </div>
-                    <div id="statistics"></div>
+                </div>
+                <div id="statisticsContainer">
+                    <h3>Результаты теста</h3>
+                    <p>Правильных ответов: <span id="correctCount">0</span></p>
+                    <p>Неправильных ответов: <span id="incorrectCount">0</span></p>
                 </div>
             </div>
         </div>

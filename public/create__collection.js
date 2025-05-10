@@ -119,9 +119,17 @@ async function loadCards(collectionId) {
     document.getElementById('cardSection').style.display = 'block';
     document.getElementById('collectionList').style.display = 'none';
 
-    const response = await fetch(`http://localhost:3000/collections/${collectionId}/cards`);
-    currentCards = await response.json();
-    updateCardList();
+    try {
+        const response = await fetch(`http://localhost:3000/collections/${collectionId}/cards`);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке карточек');
+        }
+        currentCards = await response.json();
+        updateCardList();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(error.message);
+    }
 }
 
 function updateCardList() {
@@ -137,15 +145,37 @@ function updateCardList() {
 async function createCard() {
     const word = document.getElementById('cardWord').value;
     const translation = document.getElementById('cardTranslation').value;
+    const token = localStorage.getItem('token');
 
-    await fetch(`http://localhost:3000/collections/${currentCollectionId}/cards`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, translation })
-    }); currentCards.push({ word, translation });
-    updateCardList();
-    document.getElementById('cardWord').value = '';
-    document.getElementById('cardTranslation').value = '';
+    if (!word || !translation) {
+        alert('Слово и перевод обязательны');
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:3000/collections/${currentCollectionId}/cards`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ word, translation })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при создании карточки');
+        }
+
+        const newCard = await response.json();
+        currentCards.push(newCard);
+        updateCardList();
+        document.getElementById('cardWord').value = '';
+        document.getElementById('cardTranslation').value = '';
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(error.message);
+    }
 }
 
 async function saveCollection() {
