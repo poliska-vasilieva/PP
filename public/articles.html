@@ -7,7 +7,79 @@
     <title>Статьи</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/icon.svg">
-    <script src="./creating__article.js" defer></script>
+    <script src="./articles.js" defer></script>
+    <style>
+        /* Стили для статей */
+        .article-item,
+        .article-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .article-item img,
+        .article-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .article-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .article-actions button,
+        .delete-article {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .delete-btn,
+        .delete-article {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #articleForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        #articleForm input,
+        #articleForm textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #articleForm textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        #articleForm button {
+            padding: 12px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
@@ -34,9 +106,11 @@
                         <div class="slide">
                             <div><img src="./icons/image1.png" alt="Image 1"></div>
                             <div class="slide-content">
-                                <h2 class="h2__slider">До начала XVIII века латынь была языком науки, поэтому все медицинские тексты
+                                <h2 class="h2__slider">До начала XVIII века латынь была языком науки, поэтому все
+                                    медицинские тексты
                                     писались на нём</h2>
-                                <p class="p__slider">Именно поэтому, все значимые медицинские тексты той эпохи создавались исключительно
+                                <p class="p__slider">Именно поэтому, все значимые медицинские тексты той эпохи
+                                    создавались исключительно
                                     на латинском языке. Знание латыни считалось обязательным для любого образованного
                                     человека, претендующего на научную деятельность. Медицинские трактаты, анатомические
                                     атласы, фармацевтические справочники - все они писались на латыни, что обеспечивало
@@ -46,9 +120,11 @@
                         <div class="slide">
                             <div><img src="./icons/image2.png" alt="Image 2"></div>
                             <div class="slide-content">
-                                <h2 class="h2__slider">Современный врач, даже когда говорит на профессиональную тему по-русски, употребляет
+                                <h2 class="h2__slider">Современный врач, даже когда говорит на профессиональную тему
+                                    по-русски, употребляет
                                     более 60% слов латинского и греческого происхождения</h2>
-                                <p class="p__slider">Этот факт свидетельствует о неразрывной связи современной медицины с ее историческими
+                                <p class="p__slider">Этот факт свидетельствует о неразрывной связи современной медицины
+                                    с ее историческими
                                     корнями. Латинские и греческие термины не просто являются частью профессионального
                                     жаргона, а служат основой для точного и однозначного описания анатомических
                                     структур, физиологических процессов и патологических состояний, обеспечивая
@@ -58,9 +134,11 @@
                         <div class="slide">
                             <div> <img src="./icons/image3.png" alt="Image 3"></div>
                             <div class="slide-content">
-                                <h2 class="h2__slider">Изучение латинского языка способствует развитию аналитического мышления и внимания к
+                                <h2 class="h2__slider">Изучение латинского языка способствует развитию аналитического
+                                    мышления и внимания к
                                     деталям</h2>
-                                <p class="p__slider">Латинский язык требует строгого соблюдения грамматических правил и логической
+                                <p class="p__slider">Латинский язык требует строгого соблюдения грамматических правил и
+                                    логической
                                     структуры предложений. Разбирая сложные латинские тексты, будущий врач учится
                                     выявлять закономерности, анализировать информацию и делать точные выводы, что
                                     непосредственно влияет на его способность к постановке диагноза и выбору
@@ -79,7 +157,7 @@
                     const slider = document.querySelector('.slider');
                     function showSlide() {
                         if (slideIndex >= slides.length) {
-                            slideIndex = 0; 
+                            slideIndex = 0;
                         }
                         if (slideIndex < 0) {
                             slideIndex = slides.length - 1;
@@ -97,6 +175,60 @@
                     showSlide(); // показать первый слайд
                 </script>
             </div>
+            <div class="articles-list" id="articlesList">
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', async () => {
+                    const articlesList = document.getElementById('articlesList');
+                    const token = localStorage.getItem('token');
+                    const decoded = token ? JSON.parse(atob(token.split('.')[1])) : {};
+                    const isAdmin = decoded.role === 'admin';
+
+                    try {
+                        const response = await fetch('/api/articles');
+                        if (!response.ok) throw new Error('Ошибка загрузки статей');
+
+                        const articles = await response.json();
+
+                        articlesList.innerHTML = articles.map(article => `
+            <article class="article-card">
+                ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}">` : ''}
+                <h3>${article.title}</h3>
+                <div class="article-content">${article.content}</div>
+                ${isAdmin ? `<button class="delete-article" data-id="${article.id}">Удалить</button>` : ''}
+            </article>
+        `).join('');
+
+                        // Обработка удаления для админа
+                        document.querySelectorAll('.delete-article').forEach(btn => {
+                            btn.addEventListener('click', async () => {
+                                if (!confirm('Удалить эту статью?')) return;
+
+                                try {
+                                    const response = await fetch(`/api/articles/${btn.dataset.id}`, {
+                                        method: 'DELETE',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`
+                                        }
+                                    });
+
+                                    if (!response.ok) throw new Error('Ошибка удаления статьи');
+                                    btn.closest('.article-card').remove();
+                                    alert('Статья удалена');
+                                } catch (error) {
+                                    console.error('Ошибка:', error);
+                                    alert('Не удалось удалить статью');
+                                }
+                            });
+                        });
+
+                    } catch (error) {
+                        console.error('Ошибка:', error);
+                        articlesList.innerHTML = '<p>Не удалось загрузить статьи</p>';
+                    }
+                });
+            </script>
         </div>
     </section>
 

@@ -1,159 +1,144 @@
 document.addEventListener('DOMContentLoaded', () => {
     const articleForm = document.getElementById('articleForm');
     const articleList = document.getElementById('articleList');
+    const token = localStorage.getItem('token');
 
-    // Функция для загрузки статей
+    // Проверка роли пользователя
+    const decoded = token ? decodeToken(token) : {};
+    const isTeacher = decoded.role === 'teacher';
+    const isAdmin = decoded.role === 'admin';
+
+    // Скрываем форму создания для не-учителей
+    if (!isTeacher) {
+        articleForm.style.display = 'none';
+    }
+
+    // Загрузка статей
     const loadArticles = async () => {
         try {
             const response = await fetch('/api/articles');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error('Ошибка загрузки статей');
+            
             const articles = await response.json();
-            articleList.innerHTML = '';
-            articles.forEach(article => {
-                const li = document.createElement('li');
-                li.classList.add('article__li');
-                li.innerHTML = `
-                    ${article.image ? `<img src="/uploads/${article.image}" alt="${escapeHTML(article.title)}" style="width: 100px;">` : ''}
-                    <h3>${escapeHTML(article.title)}</h3>
-                    <p>${escapeHTML(article.content)}</p>
-                    <button data-id="${article.id}" class="delete-btn">Удалить</button>
-                    <button data-id="${article.id}" data-title="${escapeHTML(article.title)}" data-content="${escapeHTML(article.content)}" class="edit-btn">Редактировать</button>
-                `;
-                articleList.appendChild(li);
-            });
-
-            articleList.addEventListener('click', handleArticleActions);
-
+            renderArticles(articles);
         } catch (error) {
-            console.error(`Ошибка при загрузке статей:, error`);
-            displayErrorMessage('Не удалось загрузить статьи.'); // Покажем сообщение об ошибке
+            console.error('Ошибка:', error);
+            alert('Не удалось загрузить статьи');
         }
     };
 
-    // Функция для добавления статьи
+    // Отображение статей
+    const renderArticles = (articles) => {
+        articleList.innerHTML = '';
+        
+        articles.forEach(article => {
+            const articleElement = document.createElement('div');
+            articleElement.className = 'article-item';
+            articleElement.innerHTML = `
+                ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}">` : ''}
+                <h3>${article.title}</h3>
+                <p>${article.content}</p>
+                ${isTeacher || isAdmin ? `
+                    <div class="article-actions">
+                        ${isTeacher ? `<button class="edit-btn" data-id="${article.id}">Редактировать</button>` : ''}
+                        <button class="delete-btn" data-id="${article.id}">Удалить</button>
+                    </div>
+                ` : ''}
+            `;
+            articleList.appendChild(articleElement);
+        });
+
+        // Назначение обработчиков для кнопок
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', handleDeleteArticle);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', handleEditArticle);
+        });
+    };
+
+    // Обработка создания/редактирования статьи
     articleForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        const formData = new FormData(articleForm);
+        const articleId = articleForm.dataset.editId;
+        const url = articleId ? `/api/articles/${articleId}` : '/api/articles';
+        const method = articleId ? 'PUT' : 'POST';
+
         try {
-            const formData = new FormData(articleForm);
-            const response = await fetch('/api/articles', {
-                method: 'POST',
-                body: formData,
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`); // Используем сообщение с сервера, если есть
-            }
-
+            if (!response.ok) throw new Error('Ошибка сохранения статьи');
+            
             articleForm.reset();
+            delete articleForm.dataset.editId;
             loadArticles();
-            displaySuccessMessage('Статья успешно создана!');
-
+            alert('Статья успешно сохранена');
         } catch (error) {
-            console.error(`Ошибка при создании статьи:, error`);
-            displayErrorMessage('Не удалось создать статью.'); // Покажем сообщение об ошибке
+            console.error('Ошибка:', error);
+            alert('Не удалось сохранить статью');
         }
     });
 
-    // Функция для обработки действий со статьями (удаление, редактирование)
-    const handleArticleActions = async (event) => {
-        const target = event.target;
+    // Удаление статьи
+    const handleDeleteArticle = async (e) => {
+        const articleId = e.target.dataset.id;
+        if (!confirm('Удалить эту статью?')) return;
 
-        if (target.classList.contains('delete-btn')) {
-            const id = target.dataset.id;
-            try {
-                const response = await fetch('/api/articles/${id}', {
-                    method: 'DELETE',
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        try {
+            const response = await fetch(`/api/articles/${articleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
+            });
 
-                loadArticles();
-                displaySuccessMessage('Статья успешно удалена!');
-
-            } catch (error) {
-                console.error(`Ошибка при удалении статьи:, error`);
-                displayErrorMessage('Не удалось удалить статью.'); // Покажем сообщение об ошибке
-            }
-        } else if (target.classList.contains('edit-btn')) {
-            const id = target.dataset.id;
-            const title = target.dataset.title;
-            const content = target.dataset.content;
-            editArticle(id, title, content);
+            if (!response.ok) throw new Error('Ошибка удаления статьи');
+            
+            loadArticles();
+            alert('Статья удалена');
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Не удалось удалить статью');
         }
     };
 
-    // Функция для редактирования статьи
-    const editArticle = (id, title, content) => {
-        articleForm.elements['title'].value = title;
-        articleForm.elements['content'].value = content;
-
-        articleForm.dataset.editId = id;
-        const submitButton = articleForm.querySelector('button[type="submit"]');
-        submitButton.textContent = 'Сохранить';
-
-        articleForm.removeEventListener('submit', articleForm.submitHandler);
-        articleForm.submitHandler = async (e) => {
-            e.preventDefault();
-            try {
-                const formData = new FormData(articleForm);
-                const response = await fetch(`/api/articles/${id}`, {
-                    method: 'PUT',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-                }
-
-                articleForm.reset();
-                delete articleForm.dataset.editId;
-                submitButton.textContent = 'Создать';
-                loadArticles();
-                displaySuccessMessage('Статья успешно обновлена!');
-
-            } catch (error) {
-                console.error('Ошибка при редактировании статьи:', error);
-                displayErrorMessage('Не удалось обновить статью.'); // Покажем сообщение об ошибке
-            }
-        };
-        articleForm.addEventListener('submit', articleForm.submitHandler);
+    // Редактирование статьи
+    const handleEditArticle = async (e) => {
+        const articleId = e.target.dataset.id;
+        
+        try {
+            const response = await fetch(`/api/articles/${articleId}`);
+            if (!response.ok) throw new Error('Ошибка загрузки статьи');
+            
+            const article = await response.json();
+            articleForm.elements['title'].value = article.title;
+            articleForm.elements['content'].value = article.content;
+            articleForm.dataset.editId = article.id;
+            
+            // Прокрутка к форме
+            articleForm.scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Не удалось загрузить статью для редактирования');
+        }
     };
 
-    // Вспомогательная функция для экранирования HTML
-    function escapeHTML(string) {
-        return string.replace(/[&<>"']/g, function (m) {
-            switch (m) {
-                case '&':
-                    return '&amp;';
-                case '<':
-                    return '&lt;';
-                case '>':
-                    return '&gt;';
-                case '"':
-                    return '&quot;';
-                case "'":
-                    return '&#039;';
-                default:
-                    return m;
-            }
-        });
-    }
-
-    // Вспомогательные функции для отображения сообщений (нужно реализовать в UI)
-    function displaySuccessMessage(message) {
-        // Реализуйте отображение сообщения об успехе (например, alert, toast)
-        alert('Успех: ' + message);
-    }
-
-    function displayErrorMessage(message) {
-        // Реализуйте отображение сообщения об ошибке (например, alert, toast)
-        alert('Ошибка: ' + message);
+    // Вспомогательная функция для декодирования токена
+    function decodeToken(token) {
+        try {
+            return JSON.parse(atob(token.split('.')[1]));
+        } catch (error) {
+            return {};
+        }
     }
 
     loadArticles();

@@ -1,14 +1,20 @@
 function handleRoleBasedButtons(userRole) {
     const teacherButton = document.getElementById('teacherButton');
+    const teacherButto = document.getElementById('teacherButto');
+
     const studentButton = document.getElementById('studentButton');
     const adminButton = document.getElementById('adminButton');
 
     teacherButton.style.display = 'none';
+    teacherButto.style.display = 'none';
+
     studentButton.style.display = 'none';
     adminButton.style.display = 'none';
 
     if (userRole === 'teacher') {
         teacherButton.style.display = 'block';
+        teacherButto.style.display = 'block';
+
     } else if (userRole === 'student') {
         studentButton.style.display = 'block';
     } else if (userRole === 'admin') {
@@ -74,28 +80,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const decoded = decodeToken(token);
         setupRoleButtons(decoded.role);
-        
+
         // Загрузка данных профиля
         const response = await fetch('/profile/data', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) throw new Error('Ошибка загрузки профиля');
-        
+
         const userData = await response.json();
         document.getElementById('nickname').value = userData.nickname || '';
         document.getElementById('email').value = userData.email || '';
 
         // Назначение обработчиков
         document.getElementById('saveButton').addEventListener('click', () => saveProfile(token));
-        
+
         // Обработчики для кнопок ролей
         if (decoded.role === 'teacher') {
             document.getElementById('teacherButton').addEventListener('click', () => {
                 window.location.href = '/create__collection.html';
             });
         }
-        // ... аналогично для других ролей
+        if (decoded.role === 'teacher') {
+            document.getElementById('teacherButto').addEventListener('click', () => {
+                window.location.href = '/students.html';
+            });
+        }
 
         if (decoded.role === 'student') {
             await loadTestHistory();
@@ -259,10 +269,10 @@ const TestManager = {
     async loadCards(collectionId) {
         const token = localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        
+
         const response = await fetch(`/collections/${collectionId}/check`, { headers });
         if (!response.ok) throw new Error('Ошибка загрузки карточек');
-        
+
         this.currentCards = await response.json();
         this.currentIndex = 0;
         this.results = { correct: 0, incorrect: 0, wrongWords: [] };
@@ -312,10 +322,10 @@ async function loadCollections() {
     try {
         const token = localStorage.getItem('token');
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-        
+
         const response = await fetch('/collections', { headers });
         if (!response.ok) throw new Error('Ошибка при загрузке коллекций');
-        
+
         const collections = await response.json();
         renderCollections(collections, token);
     } catch (error) {
@@ -333,8 +343,8 @@ function renderCollections(collections, token) {
             <h3>${collection.title}</h3>
             <p>${collection.description || 'Без описания'}</p>
             <button onclick="startTest(${collection.id})">Начать тест</button>
-            ${token && decodeToken(token).role === 'student' && collection.isPublic ? 
-                `<button onclick="cloneCollection(${collection.id})">Добавить в избранное</button>` : ''}
+            ${token && decodeToken(token).role === 'student' && collection.isPublic ?
+            `<button onclick="cloneCollection(${collection.id})">Добавить в избранное</button>` : ''}
         </li>
     `).join('');
 }
@@ -368,18 +378,18 @@ function showNextCard() {
 
 async function finishTest() {
     await TestManager.saveResults(TestManager.currentCollectionId);
-    
+
     // Показать результаты
     const stats = `Правильно: ${TestManager.results.correct}\nНеправильно: ${TestManager.results.incorrect}`;
     alert(stats);
-    
+
     // Вернуться к списку коллекций
     document.getElementById('checkSection').style.display = 'none';
     document.getElementById('collectionList').style.display = 'block';
     loadCollections();
 }
 
-window.onload = function() {
+window.onload = function () {
     loadCollections();
     if (localStorage.getItem('token')) {
         loadTestHistory();

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список студентов</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./icons/icon.svg">
+    <script src="./students.js" defer></script>
+    <style>
+        /* Стили для страницы студентов */
+        .students-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .student-item {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .student-profile {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .test-result {
+            margin: 15px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-result h4 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .test-result ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .test-result li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div class="header__cont">
+                <div class="header__logo">
+                    <a href="./main.html"><img src="./icons/logo.svg" alt="Logo" style="max-width: 40%;"></a>
+                </div>
+                <div class="header__links">
+                    <p><a href="./articles.html" class="links__for__header">Статьи</a></p>
+                    <p><a href="./profile.html" class="links__for__header">Профиль</a></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section>
+        <div class="container">
+            <h1 class="title">Список студентов</h1>
+            <div id="studentsList" class="students-list"></div>
+            <div id="studentProfile" class="student-profile" style="display: none;">
+                <h2 id="studentName"></h2>
+                <p id="studentEmail"></p>
+                <h3>Результаты тестов</h3>
+                <div id="studentTestResults"></div>
+                <button onclick="backToStudentsList()" class="btn-secondary">Назад к списку</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="header__cont">
+                <p>создано для производственной практики</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -555,6 +555,70 @@ app.get('/collections/:id/statistics', async (req, res) => {
     }
 });
 
+app.get('/favorite-collections', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const collections = await Collection.findAll({
+            where: {
+                userId: decoded.id,
+                isPublic: false
+            }
+        });
+        res.json(collections);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении избранных коллекций' });
+    }
+});
+
+app.get('/api/students', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'teacher') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const students = await User.findAll({
+            where: { role: 'student' },
+            attributes: ['id', 'nickname', 'email'],
+            order: [['nickname', 'ASC']]
+        });
+
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении списка студентов' });
+    }
+});
+
+// Получение результатов тестов студента
+app.get('/api/students/:id/test-results', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'teacher') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const studentId = req.params.id;
+        const testResults = await TestResult.findAll({
+            where: { UserId: studentId },
+            include: [Collection],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json(testResults);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении результатов тестов' });
+    }
+});
+
 app.post('/test-results', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -647,6 +711,119 @@ app.delete('/api/users/:id', async (req, res) => {
         res.status(204).end();
     } catch (error) {
         res.status(500).json({ error: 'Ошибка при удалении пользователя' });
+    }
+});
+
+// Добавьте маршруты для статей перед errorHandler
+
+// Настройка multer для загрузки изображений
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage });
+
+// Получение всех статей
+app.get('/api/articles', async (req, res) => {
+    try {
+        const articles = await Article.findAll({
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(articles);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении статей' });
+    }
+});
+
+// Создание статьи (только для учителей)
+app.post('/api/articles', upload.single('image'), async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'teacher') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const { title, content } = req.body;
+        if (!title || !content) {
+            return res.status(400).json({ error: 'Заголовок и содержание обязательны' });
+        }
+
+        const article = await Article.create({
+            title,
+            content,
+            image: req.file ? req.file.filename : null,
+            UserId: decoded.id
+        });
+
+        res.status(201).json(article);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при создании статьи' });
+    }
+});
+
+// Обновление статьи (только для автора-учителя)
+app.put('/api/articles/:id', upload.single('image'), async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const articleId = req.params.id;
+        const { title, content } = req.body;
+
+        const article = await Article.findByPk(articleId);
+        if (!article) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        if (decoded.role !== 'teacher' || article.UserId !== decoded.id) {
+            return res.status(403).json({ error: 'Нет прав для редактирования' });
+        }
+
+        const updateData = {
+            title,
+            content,
+            ...(req.file && { image: req.file.filename })
+        };
+
+        await article.update(updateData);
+        res.json(article);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при обновлении статьи' });
+    }
+});
+
+// Удаление статьи (для учителя и админа)
+app.delete('/api/articles/:id', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const articleId = req.params.id;
+
+        const article = await Article.findByPk(articleId);
+        if (!article) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        // Учитель может удалять только свои статьи, админ - любые
+        if (decoded.role !== 'admin' && 
+            (decoded.role !== 'teacher' || article.UserId !== decoded.id)) {
+            return res.status(403).json({ error: 'Нет прав для удаления' });
+        }
+
+        await article.destroy();
+        res.status(204).end();
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при удалении статьи' });
     }
 });
 

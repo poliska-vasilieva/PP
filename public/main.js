@@ -17,12 +17,14 @@ let currentCardIndex = 0;
 let correctCount = 0;
 let incorrectCount = 0;
 let testResults = [];
+let allCollections = [];
 
-async function loadCollections() {
+async function loadCollections(searchTerm = '') {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     try {
+        // Загружаем только публичные коллекции
         const response = await fetch('/collections', {
             headers
         });
@@ -31,24 +33,142 @@ async function loadCollections() {
             throw new Error('Ошибка при загрузке коллекций');
         }
 
-        const collections = await response.json();
-        const collectionList = document.getElementById('collectionList');
-        collectionList.innerHTML = '';
+        allCollections = await response.json();
+        displayCollections(allCollections, searchTerm, token, false); // false - не избранные
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showError(error.message);
+    }
+}
 
-        collections.forEach(collection => {
-            const li = document.createElement('li');
-            li.className = 'collection-item';
-            li.innerHTML = `
-                <h3>${collection.title}</h3>
-                <p>${collection.description || 'Без описания'}</p>
-                <div class="collection-buttons">
-                    <button class="btn-test" onclick="startTest(${collection.id})">Проверить знания</button>
-                    ${token && decodeToken(token).role === 'student' && collection.isPublic ?
-                    `<button class="btn-favorite" onclick="addToFavorites(${collection.id})">Добавить в избранное</button>` : ''}
-                </div>
-            `;
-            collectionList.appendChild(li);
+function displayCollections(collections, searchTerm = '', token = null, showFavorites = false) {
+    const collectionList = document.getElementById('collectionList');
+    collectionList.innerHTML = '';
+
+    // Добавляем строку поиска
+    const searchDiv = document.createElement('div');
+    searchDiv.className = 'search-container';
+    searchDiv.innerHTML = `
+        <input type="text" id="searchInput" placeholder="Поиск по названию..." value="${searchTerm}">
+        <button onclick="searchCollections()">Поиск</button>
+    `;
+    collectionList.appendChild(searchDiv);
+
+    // Добавляем табы только если пользователь авторизован
+    if (token) {
+        const tabsDiv = document.createElement('div');
+        tabsDiv.className = 'tabs';
+        tabsDiv.innerHTML = `
+            <button class="tab-button ${!showFavorites ? 'active' : ''}" onclick="showRegularCollections()">Все коллекции</button>
+            <button class="tab-button ${showFavorites ? 'active' : ''}" onclick="showFavoriteCollections()">Избранное</button>
+        `;
+        collectionList.appendChild(tabsDiv);
+    }
+
+    // Фильтрация по поисковому запросу
+    let filteredCollections = searchTerm 
+        ? collections.filter(c => 
+            c.title.toLowerCase().includes(searchTerm.toLowerCase()))
+        : collections;
+
+    // Если показываем избранное, фильтруем только приватные коллекции
+    if (showFavorites) {
+        filteredCollections = filteredCollections.filter(c => !c.isPublic);
+    } else {
+        // Иначе показываем только публичные
+        filteredCollections = filteredCollections.filter(c => c.isPublic);
+    }
+
+    if (filteredCollections.length === 0) {
+        const noResults = document.createElement('p');
+        noResults.textContent = showFavorites ? 'Нет избранных коллекций' : 'Коллекции не найдены';
+        collectionList.appendChild(noResults);
+        return;
+    }
+
+    filteredCollections.forEach(collection => {
+        const li = document.createElement('li');
+        li.className = 'collection-item';
+        li.innerHTML = `
+            <h3>${collection.title}</h3>
+            <p>${collection.description || 'Без описания'}</p>
+            <div class="collection-buttons">
+                <button class="btn-test" onclick="startTest(${collection.id})">Проверить знания</button>
+                ${token && decodeToken(token).role === 'student' && !showFavorites ? 
+                `<button class="btn-favorite" onclick="addToFavorites(${collection.id})">Добавить в избранное</button>` : ''}
+                ${showFavorites ? 
+                `<button class="btn-remove" onclick="removeFromFavorites(${collection.id})">Удалить из избранного</button>` : ''}
+            </div>
+        `;
+        collectionList.appendChild(li);
+    });
+}
+
+function searchCollections() {
+    const token = localStorage.getItem('token');
+    const searchTerm = document.getElementById('searchInput').value;
+    const isFavoritesTab = document.querySelector('.tab-button:last-child')?.classList.contains('active');
+    
+    if (isFavoritesTab) {
+        showFavoriteCollections();
+    } else {
+        displayCollections(allCollections, searchTerm, token, false);
+    }
+}
+
+function showRegularCollections() {
+    const token = localStorage.getItem('token');
+    const searchTerm = document.getElementById('searchInput')?.value || '';
+    displayCollections(allCollections, searchTerm, token, false);
+}
+
+async function showFavoriteCollections() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showError('Необходима авторизация');
+        return;
+    }
+
+    try {
+        const response = await fetch('/favorite-collections', {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке избранных коллекций');
+        }
+
+        const favorites = await response.json();
+        const searchTerm = document.getElementById('searchInput')?.value || '';
+        displayCollections(favorites, searchTerm, token, true); // true - это избранное
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showError(error.message);
+    }
+}
+
+// Функция для удаления из избранного
+async function removeFromFavorites(collectionId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showError('Необходима авторизация');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/collections/${collectionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при удалении из избранного');
+        }
+
+        showSuccess('Коллекция удалена из избранного');
+        await showFavoriteCollections();
     } catch (error) {
         console.error('Ошибка:', error);
         showError(error.message);
