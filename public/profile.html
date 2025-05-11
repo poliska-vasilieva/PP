@@ -32,23 +32,24 @@
                 <input type="text" id="nickname" placeholder="Имя" class="input inp">
                 <input type="email" id="email" placeholder="Электронная почта" class="input inp">
                 <input type="password" id="currentPassword" placeholder="Текущий пароль" class="input inp">
-                <input type="password" id="newPassword" placeholder="Новый пароль (оставьте пустым, если не меняется)" class="input inp">
-                
+                <input type="password" id="newPassword" placeholder="Новый пароль (оставьте пустым, если не меняется)"
+                    class="input inp">
+
                 <div class="buttons">
                     <button id="saveButton" class="btn-primary">Сохранить изменения</button>
                     <button id="ButtonLogOut" class="btn-secondary">Выйти</button>
-                    <button id="teacherButton" class="btn-role">Панель учителя</button>
-                    <button id="teacherButto" class="btn-role">Панель студентов</button>
-                    <button id="studentButton" class="btn-role">Мои тесты</button>
-                    <button id="adminButton" class="btn-role">Админ-панель</button>
+                    <div class="button_roles">
+                        <button id="teacherButton" class="btn-role">Панель учителя</button>
+                        <button id="teacherButto" class="btn-role">Панель студентов</button>
+                        <button id="studentButton" class="btn-role">Мои тесты</button>
+                        <button id="adminButton" class="btn-role">Админ-панель</button>
+                    </div>
                 </div>
-                
-                <!-- Добавлен раздел для истории тестов -->
+                <h3 class="h3_history">История тестов</h3>
                 <div id="testHistory" class="test-history"></div>
             </div>
-            
+
             <script>
-                // Перенесен из отдельного тега script в profile.js
                 document.getElementById('ButtonLogOut').addEventListener('click', () => {
                     localStorage.removeItem('token');
                     window.location.href = '/login';

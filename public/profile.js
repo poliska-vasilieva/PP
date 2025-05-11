@@ -1,7 +1,6 @@
 function handleRoleBasedButtons(userRole) {
     const teacherButton = document.getElementById('teacherButton');
     const teacherButto = document.getElementById('teacherButto');
-
     const studentButton = document.getElementById('studentButton');
     const adminButton = document.getElementById('adminButton');
 
@@ -92,7 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('nickname').value = userData.nickname || '';
         document.getElementById('email').value = userData.email || '';
 
-        // Назначение обработчиков
         document.getElementById('saveButton').addEventListener('click', () => saveProfile(token));
 
         // Обработчики для кнопок ролей
@@ -230,22 +228,21 @@ function displayTestHistory(history) {
     const historyContainer = document.getElementById('testHistory');
     if (!historyContainer) return;
 
-    historyContainer.innerHTML = '<h3>История тестов</h3>';
-
     if (history.length === 0) {
-        historyContainer.innerHTML += '<p>Нет данных о прошлых тестах</p>';
+        historyContainer.innerHTML = '<p class="p_history">Нет данных о прошлых тестах</p>';
         return;
     }
+
+    historyContainer.innerHTML = '';
 
     history.forEach((test, index) => {
         const testElement = document.createElement('div');
         testElement.className = 'test-result';
         testElement.innerHTML = `
-          <p><strong>Тест ${index + 1}:</strong> ${test.Collection?.title || 'Неизвестная коллекция'}</p>
-          <p>Дата: ${new Date(test.createdAt).toLocaleString()}</p>
-          <p>Правильно: ${test.correctCount}, Неправильно: ${test.incorrectCount}</p>
+          <p class="p_history"><strong>Тест ${index + 1}:</strong> ${test.Collection?.title || 'Неизвестная коллекция'}</p>
+          <p class="p_history"><strong>Дата: </strong>${new Date(test.createdAt).toLocaleString()}</p>
+          <p class="p_history"><strong>Правильно: </strong>${test.correctCount}, <strong>Неправильно: </strong>${test.incorrectCount}</p>
       `;
-
         if (test.incorrectWords && test.incorrectWords.length > 0) {
             const wordsList = document.createElement('ul');
             test.incorrectWords.forEach(item => {
@@ -255,12 +252,10 @@ function displayTestHistory(history) {
             });
             testElement.appendChild(wordsList);
         }
-
         historyContainer.appendChild(testElement);
     });
 }
 
-// Общие функции для работы с тестами
 const TestManager = {
     currentCards: [],
     currentIndex: 0,
@@ -317,7 +312,6 @@ const TestManager = {
     }
 };
 
-// Основные функции страницы
 async function loadCollections() {
     try {
         const token = localStorage.getItem('token');
@@ -379,11 +373,8 @@ function showNextCard() {
 async function finishTest() {
     await TestManager.saveResults(TestManager.currentCollectionId);
 
-    // Показать результаты
     const stats = `Правильно: ${TestManager.results.correct}\nНеправильно: ${TestManager.results.incorrect}`;
     alert(stats);
-
-    // Вернуться к списку коллекций
     document.getElementById('checkSection').style.display = 'none';
     document.getElementById('collectionList').style.display = 'block';
     loadCollections();

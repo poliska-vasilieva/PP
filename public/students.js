@@ -58,8 +58,8 @@ function displayStudentsList(students) {
         const studentElement = document.createElement('div');
         studentElement.className = 'student-item';
         studentElement.innerHTML = `
-            <h3>${student.nickname}</h3>
-            <p>${student.email}</p>
+            <h3 class="h3_students">${student.nickname}</h3>
+            <p class="p_students">${student.email}</p>
             <button onclick="viewStudentProfile(${student.id})" class="btn-primary">Просмотреть профиль</button>
         `;
         studentsList.appendChild(studentElement);
@@ -69,23 +69,30 @@ function displayStudentsList(students) {
 async function viewStudentProfile(studentId) {
     const token = localStorage.getItem('token');
     try {
-        // Загружаем данные студента
+        // данные студента
         const studentResponse = await fetch(`/api/users/${studentId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!studentResponse.ok) throw new Error('Ошибка загрузки профиля студента');
+        if (!studentResponse.ok) {
+            const errorData = await studentResponse.json();
+            throw new Error(errorData.error || 'Ошибка загрузки профиля студента');
+        }
+        
         const student = await studentResponse.json();
 
-        // Загружаем результаты тестов
+        // результаты тестов
         const testsResponse = await fetch(`/api/students/${studentId}/test-results`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!testsResponse.ok) throw new Error('Ошибка загрузки результатов тестов');
+        if (!testsResponse.ok) {
+            const errorData = await testsResponse.json();
+            throw new Error(errorData.error || 'Ошибка загрузки результатов тестов');
+        }
+        
         const testResults = await testsResponse.json();
 
-        // Отображаем профиль
         document.getElementById('studentsList').style.display = 'none';
         document.getElementById('studentProfile').style.display = 'block';
         
@@ -96,6 +103,7 @@ async function viewStudentProfile(studentId) {
     } catch (error) {
         console.error('Ошибка:', error);
         alert(error.message);
+        backToStudentsList();
     }
 }
 
@@ -104,7 +112,7 @@ function displayTestResults(testResults) {
     resultsContainer.innerHTML = '';
 
     if (testResults.length === 0) {
-        resultsContainer.innerHTML = '<p>Нет данных о тестах</p>';
+        resultsContainer.innerHTML = '<p class="p_history">Нет данных о тестах</p>';
         return;
     }
 
@@ -113,9 +121,9 @@ function displayTestResults(testResults) {
         testElement.className = 'test-result';
         testElement.innerHTML = `
             <h4>${test.Collection?.title || 'Неизвестная коллекция'}</h4>
-            <p>Дата: ${new Date(test.createdAt).toLocaleString()}</p>
-            <p>Правильных ответов: ${test.correctCount}</p>
-            <p>Ошибок: ${test.incorrectCount}</p>
+            <p class="p_history"><strong>Дата: </strong> ${new Date(test.createdAt).toLocaleString()}</p>
+            <p class="p_history"><strong>Правильных ответов: </strong>${test.correctCount}</p>
+            <p class="p_history"><strong>Ошибок: </strong>${test.incorrectCount}</p>
         `;
 
         if (test.incorrectWords && test.incorrectWords.length > 0) {
@@ -138,6 +146,5 @@ function backToStudentsList() {
     document.getElementById('studentsList').style.display = 'block';
 }
 
-// Добавляем функции в глобальную область видимости
 window.viewStudentProfile = viewStudentProfile;
 window.backToStudentsList = backToStudentsList;

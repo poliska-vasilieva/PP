@@ -28,8 +28,11 @@
     <section>
         <div class="container">
             <div class="slide__main">
-                <!-- <div style="padding-top: 30px;"><a href="./create__collection.html"><button>Создать
-                            коллекцию</button></a></div> -->
+                <div id="searchContainer" class="search-container">
+                    <input type="text" id="searchInput" placeholder="Поиск по названию...">
+                    <button onclick="searchCollections()">Поиск</button>
+                </div>
+                <div id="tabsContainer" class="tabs-container"></div>
 
                 <ul id="collectionList"></ul>
                 <div id="checkSection" style="display:none;">

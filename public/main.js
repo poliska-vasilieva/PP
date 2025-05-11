@@ -45,26 +45,24 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
     const collectionList = document.getElementById('collectionList');
     collectionList.innerHTML = '';
 
-    // Добавляем строку поиска
-    const searchDiv = document.createElement('div');
-    searchDiv.className = 'search-container';
-    searchDiv.innerHTML = `
-        <input type="text" id="searchInput" placeholder="Поиск по названию..." value="${searchTerm}">
-        <button onclick="searchCollections()">Поиск</button>
-    `;
-    collectionList.appendChild(searchDiv);
+    // Устанавливаем значение в поле поиска
+    document.getElementById('searchInput').value = searchTerm;
 
-    // Добавляем табы только если пользователь авторизован
+    // Обновляем табы (если пользователь авторизован)
     if (token) {
-        const tabsDiv = document.createElement('div');
-        tabsDiv.className = 'tabs';
-        tabsDiv.innerHTML = `
-            <button class="tab-button ${!showFavorites ? 'active' : ''}" onclick="showRegularCollections()">Все коллекции</button>
-            <button class="tab-button ${showFavorites ? 'active' : ''}" onclick="showFavoriteCollections()">Избранное</button>
+        const tabsContainer = document.getElementById('tabsContainer');
+        tabsContainer.innerHTML = `
+            <div class="tabs">
+                <button class="tab-button ${!showFavorites ? 'active' : ''}" onclick="showRegularCollections()">Все коллекции</button>
+                <button class="tab-button ${showFavorites ? 'active' : ''}" onclick="showFavoriteCollections()">Избранное</button>
+            </div>
         `;
-        collectionList.appendChild(tabsDiv);
+        tabsContainer.style.display = 'block';
+    } else {
+        document.getElementById('tabsContainer').style.display = 'none';
     }
 
+    // Остальной код функции остается без изменений...
     // Фильтрация по поисковому запросу
     let filteredCollections = searchTerm 
         ? collections.filter(c => 
@@ -285,7 +283,6 @@ function checkAnswer(isCorrect) {
     showNextCard();
 }
 
-// Обновите функцию finishTest()
 async function finishTest() {
     document.getElementById('checkSection').style.display = 'none';
 
@@ -349,7 +346,6 @@ async function finishTest() {
     loadTestHistory();
 }
 
-// Обновите функцию loadTestHistory()
 async function loadTestHistory() {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -370,7 +366,6 @@ async function loadTestHistory() {
     }
 }
 
-// Обновите функцию displayTestHistory()
 function displayTestHistory(history) {
     const historyContainer = document.createElement('div');
     historyContainer.className = 'test-history-container';
