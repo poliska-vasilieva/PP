@@ -88,8 +88,8 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
         const li = document.createElement('li');
         li.className = 'collection-item';
         li.innerHTML = `
-            <h3>${collection.title}</h3>
-            <p>${collection.description || 'Без описания'}</p>
+            <h3 class="h3__main__title">${collection.title}</h3>
+            <p class="p__main">${collection.description || 'Без описания'}</p>
             <div class="collection-buttons">
                 <button class="btn-test" onclick="startTest(${collection.id})">Проверить знания</button>
                 ${token && decodeToken(token).role === 'student' && !showFavorites ? 

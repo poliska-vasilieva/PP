@@ -8,77 +8,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/icon.svg">
     <script src="./articles.js" defer></script>
-    <style>
-        .article-item,
-        .article-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: white;
-        }
-
-        .article-item img,
-        .article-card img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .article-actions {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .article-actions button,
-        .delete-article {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .edit-btn {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .delete-btn,
-        .delete-article {
-            background-color: #f44336;
-            color: white;
-        }
-
-        #articleForm {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        #articleForm input,
-        #articleForm textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        #articleForm textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        #articleForm button {
-            padding: 12px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 
 <body>
@@ -150,87 +79,36 @@
                     <button class="prev-button" onclick="prevSlide()">&#10094;</button> <!-- кнопка назад -->
                     <button class="next-button" onclick="nextSlide()">&#10095;</button> <!-- кнопка вперед -->
                 </div>
-                <script>
-                    let slideIndex = 0;
-                    const slides = document.querySelectorAll('.slide');
-                    const slider = document.querySelector('.slider');
-                    function showSlide() {
-                        if (slideIndex >= slides.length) {
-                            slideIndex = 0;
-                        }
-                        if (slideIndex < 0) {
-                            slideIndex = slides.length - 1;
-                        }
-                        slider.style.transform = `translateX(-${slideIndex * 100}%)`;
-                    }
-                    function nextSlide() {
-                        slideIndex++;
-                        showSlide();
-                    }
-                    function prevSlide() {
-                        slideIndex--;
-                        showSlide();
-                    }
-                    showSlide(); // показать первый слайд
-                </script>
             </div>
             <div class="articles-list" id="articlesList">
             </div>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', async () => {
-                    const articlesList = document.getElementById('articlesList');
-                    const token = localStorage.getItem('token');
-                    const decoded = token ? JSON.parse(atob(token.split('.')[1])) : {};
-                    const isAdmin = decoded.role === 'admin';
 
-                    try {
-                        const response = await fetch('/api/articles');
-                        if (!response.ok) throw new Error('Ошибка загрузки статей');
-
-                        const articles = await response.json();
-
-                        articlesList.innerHTML = articles.map(article => `
-            <article class="article-card">
-                ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}">` : ''}
-                <h3>${article.title}</h3>
-                <div class="article-content">${article.content}</div>
-                ${isAdmin ? `<button class="delete-article" data-id="${article.id}">Удалить</button>` : ''}
-            </article>
-        `).join('');
-
-                        // Обработка удаления для админа
-                        document.querySelectorAll('.delete-article').forEach(btn => {
-                            btn.addEventListener('click', async () => {
-                                if (!confirm('Удалить эту статью?')) return;
-
-                                try {
-                                    const response = await fetch(`/api/articles/${btn.dataset.id}`, {
-                                        method: 'DELETE',
-                                        headers: {
-                                            'Authorization': `Bearer ${token}`
-                                        }
-                                    });
-
-                                    if (!response.ok) throw new Error('Ошибка удаления статьи');
-                                    btn.closest('.article-card').remove();
-                                    alert('Статья удалена');
-                                } catch (error) {
-                                    console.error('Ошибка:', error);
-                                    alert('Не удалось удалить статью');
-                                }
-                            });
-                        });
-
-                    } catch (error) {
-                        console.error('Ошибка:', error);
-                        articlesList.innerHTML = '<p>Не удалось загрузить статьи</p>';
-                    }
-                });
-            </script>
         </div>
     </section>
-
+    <script>
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.querySelector('.slider');
+        function showSlide() {
+            if (slideIndex >= slides.length) {
+                slideIndex = 0;
+            }
+            if (slideIndex < 0) {
+                slideIndex = slides.length - 1;
+            }
+            slider.style.transform = `translateX(-${slideIndex * 100}%)`;
+        }
+        function nextSlide() {
+            slideIndex++;
+            showSlide();
+        }
+        function prevSlide() {
+            slideIndex--;
+            showSlide();
+        }
+        showSlide(); // показать первый слайд
+    </script>
     <footer>
         <div class="container">
             <div class="header__cont">

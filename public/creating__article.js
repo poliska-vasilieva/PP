@@ -35,9 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const articleElement = document.createElement('div');
             articleElement.className = 'article-item';
             articleElement.innerHTML = `
-                ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}">` : ''}
-                <h3>${article.title}</h3>
-                <p>${article.content}</p>
+                ${article.image ? `<img src="/uploads/${article.image}" alt="${article.title}" class="article__img">` : ''}
+                <div class="article__text">
+                    <h3 class="article__title">${article.title}</h3>
+                    <p class="article__p">${article.content}</p>
+                </div>
                 ${isTeacher || isAdmin ? `
                     <div class="article-actions">
                         ${isTeacher ? `<button class="edit-btn" data-id="${article.id}">Редактировать</button>` : ''}

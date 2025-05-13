@@ -41,6 +41,15 @@ const User = sequelize.define('User', {
     role: {
         type: DataTypes.ENUM('student', 'teacher', 'admin'),
         allowNull: false
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
+    },
+    lastActivityAt: {
+        type: DataTypes.DATE,
+        allowNull: true
     }
 });
 
@@ -268,9 +277,9 @@ app.post('/collections', async (req, res) => {
             return res.status(400).json({ error: 'Название коллекции обязательно' });
         }
 
-        const collection = await Collection.create({ 
-            title, 
-            description, 
+        const collection = await Collection.create({
+            title,
+            description,
             isPublic: true,
             userId: decoded.id
         });
@@ -291,9 +300,9 @@ app.post('/personal-collections', async (req, res) => {
             return res.status(400).json({ error: 'Название коллекции обязательно' });
         }
 
-        const collection = await Collection.create({ 
-            title, 
-            description, 
+        const collection = await Collection.create({
+            title,
+            description,
             isPublic: false,
             userId: decoded.id
         });
@@ -305,10 +314,10 @@ app.post('/personal-collections', async (req, res) => {
 
 app.get('/collections', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
-    
+
     try {
         let whereCondition = { isPublic: true };
-        
+
         if (token) {
             const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
             whereCondition = {
@@ -317,7 +326,7 @@ app.get('/collections', async (req, res) => {
                     { userId: decoded.id }
                 ]
             };
-        }        
+        }
         const collections = await Collection.findAll({ where: whereCondition });
         res.json(collections);
     } catch (error) {
@@ -469,7 +478,7 @@ app.put('/collections/:id', async (req, res) => {
         if (!collection) {
             return res.status(404).json({ error: 'Коллекция не найдена' });
         }
-        if (decoded.role !== 'admin' && 
+        if (decoded.role !== 'admin' &&
             (decoded.role === 'student' || collection.userId !== decoded.id)) {
             return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
         }
@@ -493,10 +502,10 @@ app.put('/collections/:id', async (req, res) => {
 app.delete('/collections/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         // Удаляем все карточки коллекции
         await Card.destroy({ where: { CollectionId: id } });
-        
+
         // Удаляем саму коллекцию
         const deleted = await Collection.destroy({ where: { id } });
 
@@ -524,7 +533,7 @@ app.get('/collections/:id/check-edit', async (req, res) => {
         }
 
         // Проверяем права:
-        if (decoded.role !== 'admin' && 
+        if (decoded.role !== 'admin' &&
             (decoded.role === 'student' || collection.userId !== decoded.id)) {
             return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
         }
@@ -673,7 +682,7 @@ app.get('/test-results', async (req, res) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        
+
         const testResults = await TestResult.findAll({
             where: { UserId: decoded.id },
             include: [Collection],
@@ -841,7 +850,7 @@ app.delete('/api/articles/:id', async (req, res) => {
         }
 
         // Учитель может удалять только свои статьи, админ - любые
-        if (decoded.role !== 'admin' && 
+        if (decoded.role !== 'admin' &&
             (decoded.role !== 'teacher' || article.UserId !== decoded.id)) {
             return res.status(403).json({ error: 'Нет прав для удаления' });
         }

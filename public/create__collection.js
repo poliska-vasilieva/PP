@@ -78,9 +78,9 @@ async function loadCollections() {
             // 1. Это админ
             // 2. Это учитель и коллекция его
             // 3. Это студент и коллекция его (не публичная)
-            const canEdit = userRole === 'admin' || 
-                          (userRole === 'teacher' && collection.userId === userId) ||
-                          (userRole === 'student' && collection.userId === userId && !collection.isPublic);
+            const canEdit = userRole === 'admin' ||
+                (userRole === 'teacher' && collection.userId === userId) ||
+                (userRole === 'student' && collection.userId === userId && !collection.isPublic);
 
             if (canEdit) {
                 const editButton = document.createElement('button');
@@ -105,7 +105,7 @@ async function loadCollections() {
                 addButton.onclick = () => loadCards(collection.id);
                 li.appendChild(addButton);
             }
-
+            li.className = "coll-item";
             collectionList.appendChild(li);
         });
     } catch (error) {
@@ -155,7 +155,7 @@ async function createCard() {
     try {
         const response = await fetch(`http://localhost:3000/collections/${currentCollectionId}/cards`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
@@ -237,7 +237,7 @@ async function editCard(cardId) {
         }
     }
 }
-// Обновим функцию updateCardList для добавления кнопок
+
 function updateCardList() {
     const cardList = document.getElementById('cardList');
     cardList.innerHTML = '';
@@ -256,7 +256,7 @@ function updateCardList() {
         deleteButton.textContent = 'Удалить';
         deleteButton.onclick = () => deleteCard(card.id);
         li.appendChild(deleteButton);
-
+        li.className = "coll-item";
         cardList.appendChild(li);
     });
 }
@@ -311,14 +311,14 @@ async function editCollection(collectionId) {
         }
 
         const collection = await (await fetch(`http://localhost:3000/collections/${collectionId}`)).json();
-        
+
         const newTitle = prompt('Введите новое название:', collection.title);
         const newDescription = prompt('Введите новое описание:', collection.description || '');
 
         if (newTitle) {
             const updateResponse = await fetch(`http://localhost:3000/collections/${collectionId}`, {
                 method: 'PUT',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },

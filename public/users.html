@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Пользователи</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./icons/icon.svg">
+    <script src="./users.js"></script>
 </head>
 
 <body>
@@ -36,9 +38,11 @@
                 <table class="user-table">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Никнейм</th>
+                            <th onclick="sortTable(0)">Имя</th>
                             <th onclick="sortTable(1)">Email</th>
                             <th onclick="sortTable(2)">Роль</th>
+                            <th onclick="sortTable(3)">Дата регистрации</th>
+                            <th onclick="sortTable(4)">Последняя активность</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
@@ -54,140 +58,7 @@
                 <p>создано для производственной практики</p>
             </div>
         </div>
-    </footer>
-
-    <script>
-        let currentUsers = [];
-        let currentSortColumn = -1;
-        let sortDirection = 1;
-
-        async function fetchUsers() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login';
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/users', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Ошибка загрузки пользователей');
-                }
-
-                currentUsers = await response.json();
-                renderUsers(currentUsers);
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert('Не удалось загрузить пользователей. Проверьте права доступа.');
-                window.location.href = '/profile.html';
-            }
-        }
-
-        function renderUsers(users, roleFilter = 'all') {
-            const userTableBody = document.getElementById('userTableBody');
-            userTableBody.innerHTML = '';
-
-            const filteredUsers = roleFilter === 'all'
-                ? users
-                : users.filter(user => user.role === roleFilter);
-
-            if (filteredUsers.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="4" style="text-align: center;">Нет пользователей</td>`;
-                userTableBody.appendChild(row);
-                return;
-            }
-
-            filteredUsers.forEach(user => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.nickname}</td>
-                    <td>${user.email}</td>
-                    <td>${user.role === 'teacher' ? 'Учитель' : 'Студент'}</td>
-                    <td>
-                        <button class="action-btn" onclick="deleteUser(${user.id})">Удалить</button>
-                    </td>
-                `;
-                userTableBody.appendChild(row);
-            });
-        }
-
-        async function deleteUser(userId) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login';
-                return;
-            }
-
-            const confirmation = confirm('Вы уверены, что хотите удалить этого пользователя?');
-            if (!confirmation) return;
-
-            try {
-                const response = await fetch(`/api/users/${userId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Не удалось удалить пользователя');
-                }
-
-                alert('Пользователь успешно удалён');
-                fetchUsers(); // Обновляем список
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert(error.message);
-            }
-        }
-
-        function sortTable(columnIndex) {
-            if (currentSortColumn === columnIndex) {
-                sortDirection *= -1;
-            } else {
-                currentSortColumn = columnIndex;
-                sortDirection = 1;
-            }
-
-            currentUsers.sort((a, b) => {
-                const keyA = columnIndex === 0 ? a.nickname :
-                    columnIndex === 1 ? a.email : a.role;
-                const keyB = columnIndex === 0 ? b.nickname :
-                    columnIndex === 1 ? b.email : b.role;
-
-                return keyA.localeCompare(keyB) * sortDirection;
-            });
-
-            renderUsers(currentUsers, getActiveFilter());
-        }
-
-        function getActiveFilter() {
-            const activeBtn = document.querySelector('.filter-btn.active');
-            return activeBtn ? activeBtn.dataset.role : 'all';
-        }
-
-        function setupFilterButtons() {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.filter-btn').forEach(b =>
-                        b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderUsers(currentUsers, btn.dataset.role);
-                });
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupFilterButtons();
-            fetchUsers();
-        });
-    </script>
+    </footer>    
 </body>
 
 </html>
