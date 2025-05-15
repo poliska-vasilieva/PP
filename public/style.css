@@ -411,18 +411,16 @@ textarea {
     display: none;
 }
 
-.wrong-words-container {
-    margin-top: 15px;
-}
-
 .wrong-words-list, .wrong-words-history {
     list-style-type: none;
     padding-left: 0;
+    font-size: 20px;
+    color: #22303F;
 }
 
 .wrong-words-list li, .wrong-words-history li {
     padding: 5px 0;
-    border-bottom: 1px solid #eee;
+    
 }
 
 .test-history-container {

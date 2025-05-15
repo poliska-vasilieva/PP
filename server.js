@@ -25,6 +25,15 @@ const User = sequelize.define('User', {
     nickname: {
         type: DataTypes.STRING,
         allowNull: false,
+        validate: {
+            notEmpty: {
+                msg: "Имя и фамилия не могут быть пустыми."
+            },
+            is: {
+                args: /^[A-Za-zА-Яа-яЁё]+\s[A-Za-zА-Яа-яЁё]+$/,
+                msg: "Пожалуйста, введите имя и фамилию"
+            }
+        }
     },
     email: {
         type: DataTypes.STRING,
@@ -791,6 +800,19 @@ app.get('/api/articles', async (req, res) => {
     }
 });
 
+// Получение статьи по ID
+app.get('/api/articles/:id', async (req, res) => {
+    try {
+        const article = await Article.findByPk(req.params.id);
+        if (!article) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+        res.json(article);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении статьи' });
+    }
+});
+
 // Создание статьи (только для учителей)
 app.post('/api/articles', upload.single('image'), async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -866,7 +888,7 @@ app.delete('/api/articles/:id', async (req, res) => {
             return res.status(404).json({ error: 'Статья не найдена' });
         }
 
-        // Учитель может удалять только свои статьи, админ - любые
+        // Преподаватель может удалять только свои статьи, админ - любые
         if (decoded.role !== 'admin' &&
             (decoded.role !== 'teacher' || article.UserId !== decoded.id)) {
             return res.status(403).json({ error: 'Нет прав для удаления' });

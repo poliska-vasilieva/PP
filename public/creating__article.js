@@ -114,25 +114,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Редактирование статьи
-    const handleEditArticle = async (e) => {
-        const articleId = e.target.dataset.id;
+const handleEditArticle = async (e) => {
+    const articleId = e.target.dataset.id;
+    
+    try {
+        const response = await fetch(`/api/articles/${articleId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Ошибка загрузки статьи');
         
-        try {
-            const response = await fetch(`/api/articles/${articleId}`);
-            if (!response.ok) throw new Error('Ошибка загрузки статьи');
-            
-            const article = await response.json();
-            articleForm.elements['title'].value = article.title;
-            articleForm.elements['content'].value = article.content;
-            articleForm.dataset.editId = article.id;
-            
-            // Прокрутка к форме
-            articleForm.scrollIntoView({ behavior: 'smooth' });
-        } catch (error) {
-            console.error('Ошибка:', error);
-            alert('Не удалось загрузить статью для редактирования');
-        }
-    };
+        const article = await response.json();
+        articleForm.elements['title'].value = article.title;
+        articleForm.elements['content'].value = article.content;
+        articleForm.dataset.editId = article.id;
+        
+        // Прокрутка к форме
+        articleForm.scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Не удалось загрузить статью для редактирования');
+    }
+};
 
     // Вспомогательная функция для декодирования токена
     function decodeToken(token) {

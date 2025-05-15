@@ -76,10 +76,10 @@ async function loadCollections() {
 
             // Показываем кнопку редактирования только если:
             // 1. Это админ
-            // 2. Это учитель и коллекция его
+            // 2. Это Преподаватель и коллекция его
             // 3. Это студент и коллекция его (не публичная)
-            const canEdit = userRole === 'admin' || 
-                (userRole === 'teacher' && collection.userId === userId) || 
+            const canEdit = userRole === 'admin' ||
+                (userRole === 'teacher' && collection.userId === userId) ||
                 (userRole === 'student' && collection.userId === userId && !collection.isPublic);
 
             if (canEdit) {
@@ -324,9 +324,9 @@ async function editCollection(collectionId) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ 
-                    title: newTitle, 
-                    description: newDescription 
+                body: JSON.stringify({
+                    title: newTitle,
+                    description: newDescription
                 })
             });
 

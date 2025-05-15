@@ -5,9 +5,9 @@ document.getElementById('registerButton').addEventListener('click', async (event
     const password = document.getElementById('password').value;
     const role = document.getElementById('role').value; // Получаем роль из формы
 
-    const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+$/;
+    const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+\s[A-Za-zА-Яа-яЁё]+$/;
     if (!nicknameRegex.test(nickname)) {
-        alert("Имя должно состоять только из букв.");
+        alert("Пожалуйста, введите имя и фамилию");
         return;
     }
 
@@ -31,7 +31,7 @@ document.getElementById('registerButton').addEventListener('click', async (event
     });
 
     const data = await response.json();
-    
+
     if (response.ok) {
         if (data.token && data.role) { // Убрано условие на redirect
             localStorage.setItem('token', data.token);

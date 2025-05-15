@@ -31,7 +31,7 @@ async function fetchUsers() {
 
 function formatDate(dateString) {
     if (!dateString) return 'Неизвестно';
-    
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Неизвестно';
 
@@ -44,7 +44,7 @@ function formatDate(dateString) {
 function getRoleName(role) {
     const roles = {
         'student': 'Студент',
-        'teacher': 'Учитель',
+        'teacher': 'Преподаватель',
         'admin': 'Администратор'
     };
     return roles[role] || role;

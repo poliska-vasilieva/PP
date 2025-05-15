@@ -369,7 +369,7 @@ async function loadTestHistory() {
 function displayTestHistory(history) {
     const historyContainer = document.createElement('div');
     historyContainer.className = 'test-history-container';
-    historyContainer.innerHTML = '<h3>История тестов</h3>';
+    historyContainer.innerHTML = '<h3 class="h3_history">История тестов</h3>';
 
     if (history.length === 0) {
         historyContainer.innerHTML += '<p>Нет данных о прошлых тестах</p>';
