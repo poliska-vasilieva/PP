@@ -30,23 +30,22 @@ async function fetchUsers() {
 }
 
 function formatDate(dateString) {
-    try {
-        if (!dateString) return 'Никогда';
+    if (!dateString) return 'Неизвестно';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Неизвестно';
 
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Никогда';
-
-        return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU');
-    } catch (e) {
-        console.error('Ошибка форматирования даты:', e);
-        return 'Никогда';
-    }
+    return date.toLocaleDateString('ru-RU') + ' ' + date.toLocaleTimeString('ru-RU', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 function getRoleName(role) {
     const roles = {
         'student': 'Студент',
-        'teacher': 'Учитель'
+        'teacher': 'Учитель',
+        'admin': 'Администратор'
     };
     return roles[role] || role;
 }
@@ -61,7 +60,7 @@ function renderUsers(users, roleFilter = 'all') {
 
     if (filteredUsers.length === 0) {
         const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="6" style="text-align: center;">Нет пользователей</td>`;
+        row.innerHTML = `<td colspan="5" style="text-align: center;">Нет пользователей</td>`;
         userTableBody.appendChild(row);
         return;
     }
@@ -69,15 +68,14 @@ function renderUsers(users, roleFilter = 'all') {
     filteredUsers.forEach(user => {
         const row = document.createElement('tr');
         row.innerHTML = `
-    <td>${user.nickname}</td>
-    <td>${user.email}</td>
-    <td>${getRoleName(user.role)}</td>
-    <td>${formatDate(user.createdAt)}</td>
-    <td>${formatDate(user.lastActivityAt)}</td>
-    <td>
-        <button class="action-btn" onclick="deleteUser(${user.id})">Удалить</button>
-    </td>
-    `;
+            <td>${user.nickname}</td>
+            <td>${user.email}</td>
+            <td>${getRoleName(user.role)}</td>
+            <td>${formatDate(user.createdAt)}</td>
+            <td>
+                <button class="action-btn" onclick="deleteUser(${user.id})">Удалить</button>
+            </td>
+        `;
         userTableBody.appendChild(row);
     });
 }
@@ -128,11 +126,10 @@ function sortTable(columnIndex) {
             case 1: keyA = a.email; keyB = b.email; break;
             case 2: keyA = a.role; keyB = b.role; break;
             case 3: keyA = new Date(a.createdAt); keyB = new Date(b.createdAt); break;
-            case 4: keyA = new Date(a.lastActivityAt || 0); keyB = new Date(b.lastActivityAt || 0); break;
             default: return 0;
         }
 
-        if (columnIndex === 3 || columnIndex === 4) {
+        if (columnIndex === 3) {
             return (keyA - keyB) * sortDirection;
         } else {
             return keyA.localeCompare(keyB) * sortDirection;

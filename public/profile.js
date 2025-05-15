@@ -1,18 +1,21 @@
 function handleRoleBasedButtons(userRole) {
-    const teacherButton = document.getElementById('teacherButton');
-    const teacherButto = document.getElementById('teacherButto');
+    const teacherButtonOne = document.getElementById('teacherButtonOne');
+    const teacherButtonTwo = document.getElementById('teacherButtonTwo');
+    const teacherButtonFree = document.getElementById('teacherButtonFree');
     const studentButton = document.getElementById('studentButton');
     const adminButton = document.getElementById('adminButton');
 
-    teacherButton.style.display = 'none';
-    teacherButto.style.display = 'none';
+    teacherButtonOne.style.display = 'none';
+    teacherButtonTwo.style.display = 'none';
+    teacherButtonFree.style.display = 'none';
 
     studentButton.style.display = 'none';
     adminButton.style.display = 'none';
 
     if (userRole === 'teacher') {
-        teacherButton.style.display = 'block';
-        teacherButto.style.display = 'block';
+        teacherButtonOne.style.display = 'block';
+        teacherButtonTwo.style.display = 'block';
+        teacherButtonFree.style.display = 'block';
 
     } else if (userRole === 'student') {
         studentButton.style.display = 'block';
@@ -95,16 +98,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Обработчики для кнопок ролей
         if (decoded.role === 'teacher') {
-            document.getElementById('teacherButton').addEventListener('click', () => {
+            document.getElementById('teacherButtonOne').addEventListener('click', () => {
                 window.location.href = '/create__collection.html';
             });
         }
         if (decoded.role === 'teacher') {
-            document.getElementById('teacherButto').addEventListener('click', () => {
+            document.getElementById('teacherButtonTwo').addEventListener('click', () => {
                 window.location.href = '/students.html';
             });
         }
 
+        if (decoded.role === 'teacher') {
+            document.getElementById('teacherButtonFree').addEventListener('click', () => {
+                window.location.href = '/creating__article.html';
+            });
+        }
         if (decoded.role === 'student') {
             await loadTestHistory();
         }
@@ -144,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleRoleBasedButtons(decoded.role);
         fetchUserProfile(token);
 
-        document.getElementById('teacherButton').addEventListener('click', () => {
+        document.getElementById('teacherButtonOne').addEventListener('click', () => {
             window.location.href = '/create__collection.html';
         });
 

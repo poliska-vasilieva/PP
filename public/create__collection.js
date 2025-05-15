@@ -78,8 +78,8 @@ async function loadCollections() {
             // 1. Это админ
             // 2. Это учитель и коллекция его
             // 3. Это студент и коллекция его (не публичная)
-            const canEdit = userRole === 'admin' ||
-                (userRole === 'teacher' && collection.userId === userId) ||
+            const canEdit = userRole === 'admin' || 
+                (userRole === 'teacher' && collection.userId === userId) || 
                 (userRole === 'student' && collection.userId === userId && !collection.isPublic);
 
             if (canEdit) {
@@ -298,37 +298,44 @@ async function editCollection(collectionId) {
     }
 
     try {
-        // Сначала проверяем права на редактирование
-        const checkResponse = await fetch(`http://localhost:3000/collections/${collectionId}/check-edit`, {
+        // Загрузка текущих данных коллекции
+        const collectionResponse = await fetch(`http://localhost:3000/collections/${collectionId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        if (!checkResponse.ok) {
-            const error = await checkResponse.json();
-            throw new Error(error.error || 'Нет прав для редактирования');
+        if (!collectionResponse.ok) {
+            const error = await collectionResponse.json();
+            throw new Error(error.error || 'Ошибка при загрузке коллекции');
         }
 
-        const collection = await (await fetch(`http://localhost:3000/collections/${collectionId}`)).json();
+        const collection = await collectionResponse.json();
 
+        // Запрос новых данных у пользователя
         const newTitle = prompt('Введите новое название:', collection.title);
         const newDescription = prompt('Введите новое описание:', collection.description || '');
 
         if (newTitle) {
+            // Отправка обновленных данных на сервер
             const updateResponse = await fetch(`http://localhost:3000/collections/${collectionId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ title: newTitle, description: newDescription })
+                body: JSON.stringify({ 
+                    title: newTitle, 
+                    description: newDescription 
+                })
             });
 
             if (!updateResponse.ok) {
-                throw new Error('Ошибка при обновлении коллекции');
+                const error = await updateResponse.json();
+                throw new Error(error.error || 'Ошибка при обновлении коллекции');
             }
 
+            // Обновление списка коллекций
             loadCollections();
         }
     } catch (error) {

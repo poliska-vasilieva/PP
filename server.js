@@ -46,10 +46,6 @@ const User = sequelize.define('User', {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW
-    },
-    lastActivityAt: {
-        type: DataTypes.DATE,
-        allowNull: true
     }
 });
 
@@ -262,6 +258,24 @@ app.post('/updateProfile', async (request, response) => {
         return response.status(500).send("Ошибка на сервере"); // Отправляем сообщение об ошибке сервера
     }
 });
+
+// Добавьте этот роут перед другими роутами коллекций
+app.get('/collections/:id', async (req, res) => {
+    try {
+        const collection = await Collection.findByPk(req.params.id, {
+            include: [Card] // Опционально, если нужно включать карточки
+        });
+
+        if (!collection) {
+            return res.status(404).json({ error: 'Коллекция не найдена' });
+        }
+
+        res.json(collection);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при получении коллекции' });
+    }
+});
+
 app.post('/collections', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -478,8 +492,9 @@ app.put('/collections/:id', async (req, res) => {
         if (!collection) {
             return res.status(404).json({ error: 'Коллекция не найдена' });
         }
-        if (decoded.role !== 'admin' &&
-            (decoded.role === 'student' || collection.userId !== decoded.id)) {
+
+        // Проверка прав: админ или владелец коллекции
+        if (decoded.role !== 'admin' && collection.userId !== decoded.id) {
             return res.status(403).json({ error: 'Нет прав для редактирования этой коллекции' });
         }
 
@@ -492,7 +507,9 @@ app.put('/collections/:id', async (req, res) => {
             return res.status(404).json({ error: 'Коллекция не найдена' });
         }
 
-        res.json({ message: 'Коллекция обновлена' });
+        // Возвращаем обновленную коллекцию
+        const updatedCollection = await Collection.findByPk(id);
+        res.json(updatedCollection);
     } catch (error) {
         res.status(500).json({ error: 'Ошибка при обновлении коллекции' });
     }
