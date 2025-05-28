@@ -7,7 +7,7 @@
     <title>Пользователи</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/icon.svg">
-    <script src="./users.js"></script>
+    <script src="./users.js" defer></script>
 </head>
 
 <body>
@@ -41,15 +41,43 @@
                             <th onclick="sortTable(0)">Имя</th>
                             <th onclick="sortTable(1)">Email</th>
                             <th onclick="sortTable(2)">Роль</th>
-                            <th onclick="sortTable(3)">Дата регистрации</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody"></tbody>
                 </table>
+                <div id="editUserModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <div class="modal-item">
+                            <h3 class="h3_history ">Редактировать пользователя</h3>
+                            <input type="hidden" id="editUserId">
+                            <input type="text" id="editUserName" placeholder="Имя" required>
+                            <input type="email" id="editUserEmail" placeholder="Email" required>
+                            <select id="editUserRole">
+                                <option value="student">Студент</option>
+                                <option value="teacher">Преподаватель</option>
+                            </select>
+                            <button id="saveUserBtn">Сохранить</button>
+                            <div id="editUserError" class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="create-teacher-form">
+                <h3 class="title">Создать преподавателя</h3>
+                <input type="text" id="teacherName" placeholder="Имя и фамилия" required>
+                <input type="email" id="teacherEmail" placeholder="Email" required>
+                <input type="password" id="teacherPassword" placeholder="Пароль" required minlength="9">
+                <button id="createTeacherBtn">Создать преподавателя</button>
+                <div id="teacherFormError" class="error-message"></div>
+            </div>
+
         </div>
     </section>
+
+    </div>
 
     <footer>
         <div class="container">
@@ -57,7 +85,7 @@
                 <p>создано для производственной практики</p>
             </div>
         </div>
-    </footer>    
+    </footer>
 </body>
 
 </html>

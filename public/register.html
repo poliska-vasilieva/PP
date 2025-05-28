@@ -24,11 +24,7 @@
                         <input type="text" name="nickname" id="nickname" placeholder="Имя пользователя" required>
                         <input type="email" name="email" id="email" placeholder="Электронная почта" required>
                         <input type="password" name="password" id="password" placeholder="Пароль" required>
-                        <select id="role" required>
-                            <option value="student">Студент</option>
-                            <option value="teacher">Преподаватель</option>
-                            <option value="admin">Администратор</option>
-                        </select>
+                        <input type="hidden" id="role" value="student">
                         <button id="registerButton">Зарегистрироваться</button>
                     </div>
                     <p class="two__links"><a href="./login.html" class="reg__log__links">Войти, если есть аккаунт</a>

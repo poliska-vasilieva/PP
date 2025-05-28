@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes, Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -17,23 +17,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: 'database.sqlite'
+  dialect: 'postgres',
+  host: 'localhost',
+  username: 'postgres',
+  password: 'password',
+  database: 'doctors_word'
 });
 
 const User = sequelize.define('User', {
     nickname: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: "Имя и фамилия не могут быть пустыми."
-            },
-            is: {
-                args: /^[A-Za-zА-Яа-яЁё]+\s[A-Za-zА-Яа-яЁё]+$/,
-                msg: "Пожалуйста, введите имя и фамилию"
-            }
-        }
     },
     email: {
         type: DataTypes.STRING,
@@ -49,12 +43,8 @@ const User = sequelize.define('User', {
     },
     role: {
         type: DataTypes.ENUM('student', 'teacher', 'admin'),
-        allowNull: false
-    },
-    createdAt: {
-        type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: DataTypes.NOW
+        defaultValue: 'student'
     }
 });
 
@@ -73,11 +63,6 @@ const Collection = sequelize.define('Collection', {
     title: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: "Название коллекции не может быть пустым"
-            }
-        }
     },
     description: {
         type: DataTypes.TEXT,
@@ -97,37 +82,16 @@ const Article = sequelize.define('Article', {
     title: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: "Заголовок не может быть пустым"
-            },
-            len: {
-                args: [3, 255],
-                msg: "Заголовок должен быть длиной от 3 до 255 символов"
-            }
-        }
     },
     content: {
         type: DataTypes.TEXT,
         allowNull: false,
-        validate: {
-            notEmpty: {
-                msg: "Содержимое не может быть пустым"
-            }
-        }
     },
     image: {
         type: DataTypes.STRING,
         allowNull: true,
     }
 });
-// Связь между пользователями и карточками
-User.hasMany(Card);
-Card.belongsTo(User);
-
-// Связь между коллекциями и карточками
-Collection.hasMany(Card);
-Card.belongsTo(Collection);
 
 const TestResult = sequelize.define('TestResult', {
     correctCount: {
@@ -144,16 +108,46 @@ const TestResult = sequelize.define('TestResult', {
     }
 });
 
-// Добавьте связи
+// Связи между моделями
+User.hasMany(Card);
+Card.belongsTo(User);
+Collection.hasMany(Card);
+Card.belongsTo(Collection);
+User.hasMany(Collection);
+Collection.belongsTo(User);
 User.hasMany(TestResult);
 TestResult.belongsTo(User);
 Collection.hasMany(TestResult);
 TestResult.belongsTo(Collection);
 
+// Функция создания администратора
+const createAdminUser = async () => {
+    try {
+        const adminEmail = 'admin@example.com';
+        const adminExists = await User.findOne({ where: { email: adminEmail } });
+
+        if (!adminExists) {
+            const hashedPassword = await bcrypt.hash('123456789', 12);
+            await User.create({
+                nickname: 'Администратор Системы',
+                email: adminEmail,
+                password: hashedPassword,
+                role: 'admin'
+            });
+            console.log('Администратор создан: admin@example.com / 123456789');
+        }
+    } catch (error) {
+        console.error('Ошибка при создании администратора:', error);
+    }
+};
+
+// Инициализация базы данных
 sequelize.sync().then(() => {
     console.log('Database & tables created!');
+    createAdminUser();
 });
 
+// Маршруты
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -170,25 +164,32 @@ app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
 
+// Регистрация (только для студентов)
 app.post('/register', async (req, res) => {
-    const { nickname, email, password, role } = req.body;
+    const { nickname, email, password } = req.body;
 
-    if (!nickname || !email || !password || !role) {
+    if (!nickname || !email || !password) {
         return res.status(400).json({ error: 'Все поля обязательны для заполнения!' });
     }
 
     try {
-        const existingUser = await User.findOne({ where: { email: email } });
+        const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
             return res.status(409).json({ error: 'Аккаунт с такой почтой уже существует!' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        const user = await User.create({ nickname, email, password: hashedPassword, role });
+        const user = await User.create({ 
+            nickname, 
+            email, 
+            password: hashedPassword,
+            role: 'student' // Фиксированная роль
+        });
+        
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-        res.status(201).json({ message: 'Пользователь успешно прошел регистрацию!', token, role: user.role });
+        res.status(201).json({ message: 'Пользователь успешно зарегистрирован!', token });
     } catch (error) {
-        console.error("Произошла ошибка:", error);
+        console.error("Ошибка регистрации:", error);
         res.status(500).json({ error: 'Произошла ошибка на сервере.' });
     }
 });
@@ -722,7 +723,40 @@ app.get('/test-results', async (req, res) => {
     }
 });
 
-// Добавьте этот маршрут перед errorHandler
+app.post('/api/teachers', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const { nickname, email, password } = req.body;
+        if (!nickname || !email || !password) {
+            return res.status(400).json({ error: 'Все поля обязательны' });
+        }
+
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(409).json({ error: 'Пользователь с таким email уже существует' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const teacher = await User.create({
+            nickname,
+            email,
+            password: hashedPassword,
+            role: 'teacher'
+        });
+
+        res.status(201).json(teacher);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при создании преподавателя' });
+    }
+});
+
 app.get('/api/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -775,7 +809,36 @@ app.delete('/api/users/:id', async (req, res) => {
     }
 });
 
-// Добавьте маршруты для статей перед errorHandler
+app.put('/api/users/:id', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        const { nickname, email, role } = req.body;
+        if (!nickname || !email || !role) {
+            return res.status(400).json({ error: 'Все поля обязательны' });
+        }
+
+        const [updated] = await User.update(
+            { nickname, email, role },
+            { where: { id: req.params.id } }
+        );
+
+        if (updated === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+
+        const updatedUser = await User.findByPk(req.params.id);
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка при обновлении пользователя' });
+    }
+});
 
 // Настройка multer для загрузки изображений
 const storage = multer.diskStorage({
@@ -903,11 +966,6 @@ app.delete('/api/articles/:id', async (req, res) => {
 
 const errorHandler = (err, req, res, next) => {
     console.error(err.stack);
-
-    if (err instanceof multer.MulterError) {
-        return res.status(400).json({ message: err.message });
-    }
-
     res.status(500).json({ message: err.message || 'Что-то пошло не так!' });
 };
 

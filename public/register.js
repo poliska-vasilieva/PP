@@ -3,7 +3,8 @@ document.getElementById('registerButton').addEventListener('click', async (event
     const nickname = document.getElementById('nickname').value;
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value; // Получаем роль из формы
+    
+    const role = 'student'; 
 
     const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+\s[A-Za-zА-Яа-яЁё]+$/;
     if (!nicknameRegex.test(nickname)) {
@@ -11,7 +12,7 @@ document.getElementById('registerButton').addEventListener('click', async (event
         return;
     }
 
-    const emailRegex = /^[^@]+@[^@]+.[^@]+$/; // Исправлено на корректный регулярное выражение для email
+    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
     if (!emailRegex.test(email)) {
         alert("Пожалуйста, введите корректный адрес электронной почты.");
         return;
@@ -27,18 +28,17 @@ document.getElementById('registerButton').addEventListener('click', async (event
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ nickname, email, password, role }) // Отправляем роль
+        body: JSON.stringify({ nickname, email, password, role })
     });
 
     const data = await response.json();
 
     if (response.ok) {
-        if (data.token && data.role) { // Убрано условие на redirect
+        if (data.token) {
             localStorage.setItem('token', data.token);
-            localStorage.setItem('role', data.role);
-            window.location.href = '/profile'; // Здесь можно указать URL для перенаправления
+            window.location.href = '/profile';
         } else {
-            alert('Ошибка: отсутствует токен или роль.');
+            alert('Ошибка: отсутствует токен.');
         }
     } else {
         alert(data.error || 'Неизвестная ошибка.');

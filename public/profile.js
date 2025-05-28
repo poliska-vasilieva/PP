@@ -8,7 +8,6 @@ function handleRoleBasedButtons(userRole) {
     teacherButtonOne.style.display = 'none';
     teacherButtonTwo.style.display = 'none';
     teacherButtonFree.style.display = 'none';
-
     studentButton.style.display = 'none';
     adminButton.style.display = 'none';
 
@@ -16,14 +15,12 @@ function handleRoleBasedButtons(userRole) {
         teacherButtonOne.style.display = 'block';
         teacherButtonTwo.style.display = 'block';
         teacherButtonFree.style.display = 'block';
-
     } else if (userRole === 'student') {
         studentButton.style.display = 'block';
     } else if (userRole === 'admin') {
         adminButton.style.display = 'block';
     }
 }
-
 function decodeToken(token) {
     try {
         return JSON.parse(atob(token.split('.')[1]));
@@ -81,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const decoded = decodeToken(token);
-        setupRoleButtons(decoded.role);
+        handleRoleBasedButtons(decoded.role);
 
         // Загрузка данных профиля
         const response = await fetch('/profile/data', {
@@ -94,21 +91,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('nickname').value = userData.nickname || '';
         document.getElementById('email').value = userData.email || '';
 
-        document.getElementById('saveButton').addEventListener('click', () => saveProfile(token));
-
         // Обработчики для кнопок ролей
         if (decoded.role === 'teacher') {
             document.getElementById('teacherButtonOne').addEventListener('click', () => {
                 window.location.href = '/create__collection.html';
             });
-        }
-        if (decoded.role === 'teacher') {
             document.getElementById('teacherButtonTwo').addEventListener('click', () => {
                 window.location.href = '/students.html';
             });
-        }
-
-        if (decoded.role === 'teacher') {
             document.getElementById('teacherButtonFree').addEventListener('click', () => {
                 window.location.href = '/creating__article.html';
             });
@@ -134,7 +124,7 @@ async function fetchUserProfile(token) {
             const userData = await response.json();
             document.getElementById('nickname').value = userData.nickname || '';
             document.getElementById('email').value = userData.email || '';
-        } else {
+                   } else {
             console.error("Ошибка при получении данных профиля:", response.status);
         }
     } catch (error) {
