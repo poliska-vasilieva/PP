@@ -41,6 +41,7 @@
                             <th onclick="sortTable(0)">Имя</th>
                             <th onclick="sortTable(1)">Email</th>
                             <th onclick="sortTable(2)">Роль</th>
+                            <th onclick="sortTable(3)">Группа</th>
                             <th>Действия</th>
                         </tr>
                     </thead>
@@ -50,13 +51,19 @@
                     <div class="modal-content">
                         <span class="close">&times;</span>
                         <div class="modal-item">
-                            <h3 class="h3_history ">Редактировать пользователя</h3>
+                            <h3 class="h3_history">Редактировать пользователя</h3>
                             <input type="hidden" id="editUserId">
                             <input type="text" id="editUserName" placeholder="Имя" required>
                             <input type="email" id="editUserEmail" placeholder="Email" required>
                             <select id="editUserRole">
                                 <option value="student">Студент</option>
                                 <option value="teacher">Преподаватель</option>
+                            </select>
+                            <select id="editUserGroup" style="display: none;">
+                                <option value="">Не указана</option>
+                                <option value="1">Группа 1</option>
+                                <option value="2">Группа 2</option>
+                                <option value="3">Группа 3</option>
                             </select>
                             <button id="saveUserBtn">Сохранить</button>
                             <div id="editUserError" class="error-message"></div>
@@ -73,11 +80,8 @@
                 <button id="createTeacherBtn">Создать преподавателя</button>
                 <div id="teacherFormError" class="error-message"></div>
             </div>
-
         </div>
     </section>
-
-    </div>
 
     <footer>
         <div class="container">

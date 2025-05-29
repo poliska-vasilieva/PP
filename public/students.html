@@ -28,15 +28,22 @@
     <section>
         <div class="container">
             <div class="slide__students">
-            <h1 class="title">Список студентов</h1>
-            <div id="studentsList" class="students-list"></div>
-            <div id="studentProfile" class="student-profile" style="display: none;">
-                <h2 id="studentName"></h2>
-                <p id="studentEmail"></p>
-                <h3 class="h3__stud__prof">Результаты тестов</h3>
-                <div id="studentTestResults"></div>
-                <button onclick="backToStudentsList()" class="btn-secondary">Назад к списку</button>
-            </div>
+                <h1 class="title">Список студентов</h1>
+                <div class="group-filter">
+                    <button onclick="filterStudents('all')" class="btn-filter active">Все</button>
+                    <button onclick="filterStudents('1')" class="btn-filter">Группа 1</button>
+                    <button onclick="filterStudents('2')" class="btn-filter">Группа 2</button>
+                    <button onclick="filterStudents('3')" class="btn-filter">Группа 3</button>
+                </div>
+                <div id="studentsList" class="students-list"></div>
+                <div id="studentProfile" class="student-profile" style="display: none;">
+                    <h2 id="studentName"></h2>
+                    <p id="studentEmail"></p>
+                    <p id="studentGroup"></p> <!-- Добавленная строка для группы -->
+                    <h3 class="h3__stud__prof">Результаты тестов</h3>
+                    <div id="studentTestResults"></div>
+                    <button onclick="backToStudentsList()" class="btn-secondary">Назад к списку</button>
+                </div>
             </div>
         </div>
     </section>

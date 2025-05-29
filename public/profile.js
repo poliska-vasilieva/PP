@@ -114,6 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchUserProfile(token) {
     try {
+        const decoded = decodeToken(token);
         const response = await fetch('/profile/data', {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -124,7 +125,17 @@ async function fetchUserProfile(token) {
             const userData = await response.json();
             document.getElementById('nickname').value = userData.nickname || '';
             document.getElementById('email').value = userData.email || '';
-                   } else {
+            
+            // Скрываем группу для преподавателей и администраторов
+            const groupInfo = document.getElementById('groupInfo');
+            if (decoded.role === 'teacher' || decoded.role === 'admin') {
+                groupInfo.style.display = 'none';
+            } else {
+                document.getElementById('groupDisplay').textContent = userData.group || 'Не указана';
+                groupInfo.style.display = 'block';
+            }
+        }
+        else {
             console.error("Ошибка при получении данных профиля:", response.status);
         }
     } catch (error) {
@@ -142,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleRoleBasedButtons(decoded.role);
         fetchUserProfile(token);
 
+        // Остальные обработчики кнопок остаются без изменений
         document.getElementById('teacherButtonOne').addEventListener('click', () => {
             window.location.href = '/create__collection.html';
         });
@@ -154,8 +166,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/users.html';
         });
 
+        // Загружаем историю тестов только для студентов
         if (decoded.role === 'student') {
             loadTestHistory();
+        } else {
+            // Скрываем раздел истории для преподавателей и администраторов
+            document.getElementById('testHistory').style.display = 'none';
+            document.querySelector('.h3_history').style.display = 'none';
         }
     }
 
@@ -164,6 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value;
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
+        const group = document.getElementById('group').value;
+
 
         if (!nickname || !email) {
             alert('Имя и электронная почта обязательны для заполнения');
@@ -177,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ nickname, email, currentPassword, newPassword })
+                body: JSON.stringify({ nickname, email, currentPassword, newPassword, group })
             });
 
             if (response.ok) {
@@ -205,6 +224,17 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadTestHistory() {
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    const decoded = decodeToken(token);
+    // Не загружаем историю тестов для администратора
+    if (decoded.role === 'admin') {
+        document.getElementById('testHistory').style.display = 'none';
+        document.querySelector('.h3_history').style.display = 'none';
+        return;
+    } else {
+        document.getElementById('testHistory').style.display = 'block';
+        document.querySelector('.h3_history').style.display = 'block';
+    }
 
     try {
         const response = await fetch('/test-results', {

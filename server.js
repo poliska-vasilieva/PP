@@ -21,7 +21,7 @@ const sequelize = new Sequelize({
   host: 'localhost',
   username: 'postgres',
   password: 'password',
-  database: 'doctors_word'
+  database: 'dara'
 });
 
 const User = sequelize.define('User', {
@@ -45,6 +45,10 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('student', 'teacher', 'admin'),
         allowNull: false,
         defaultValue: 'student'
+    },
+    group: {
+        type: DataTypes.ENUM('1', '2', '3'),
+        allowNull: true // Только для студентов
     }
 });
 
@@ -164,9 +168,8 @@ app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
 
-// Регистрация (только для студентов)
 app.post('/register', async (req, res) => {
-    const { nickname, email, password } = req.body;
+    const { nickname, email, password, group } = req.body;
 
     if (!nickname || !email || !password) {
         return res.status(400).json({ error: 'Все поля обязательны для заполнения!' });
@@ -183,7 +186,8 @@ app.post('/register', async (req, res) => {
             nickname, 
             email, 
             password: hashedPassword,
-            role: 'student' // Фиксированная роль
+            role: 'student', // Фиксированная роль
+            group: group || null
         });
         
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
@@ -232,7 +236,7 @@ app.get('/profile/data', async (req, res) => {
 });
 
 app.post('/updateProfile', async (request, response) => {
-    const { nickname, email, currentPassword, newPassword } = request.body; // Исправлено: Получаем currentPassword
+    const { nickname, email, currentPassword, newPassword, group } = request.body;
 
     if (!nickname || !email) {
         return response.status(400).json({ message: 'Имя и электронная почта обязательны для заполнения' }); // Отправляем JSON ответ с сообщением
@@ -253,6 +257,9 @@ app.post('/updateProfile', async (request, response) => {
         // Обновляем данные пользователя
         user.nickname = nickname;
         user.email = email;
+        if (user.role === 'student') {
+            user.group = group;
+        }
 
         // Хэшируем новый пароль, если он предоставлен
         if (newPassword) {
@@ -621,7 +628,7 @@ app.get('/api/students', async (req, res) => {
 
         const students = await User.findAll({
             where: { role: 'student' },
-            attributes: ['id', 'nickname', 'email'],
+            attributes: ['id', 'nickname', 'email', 'group'], // Добавить group
             order: [['nickname', 'ASC']]
         });
 
@@ -655,7 +662,6 @@ app.get('/api/students/:id/test-results', async (req, res) => {
     }
 });
 
-// Получение данных пользователя по ID
 app.get('/api/users/:id', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Необходима авторизация' });
@@ -667,7 +673,7 @@ app.get('/api/users/:id', async (req, res) => {
         }
 
         const user = await User.findByPk(req.params.id, {
-            attributes: ['id', 'nickname', 'email', 'role'],
+            attributes: ['id', 'nickname', 'email', 'role', 'group'],
             where: { role: 'student' }
         });
 
@@ -771,7 +777,7 @@ app.get('/api/users', async (req, res) => {
             where: {
                 role: ['student', 'teacher']
             },
-            attributes: ['id', 'nickname', 'email', 'role'],
+            attributes: ['id', 'nickname', 'email', 'role', 'group'],
             order: [['role', 'ASC'], ['nickname', 'ASC']]
         });
 

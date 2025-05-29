@@ -3,6 +3,7 @@ document.getElementById('registerButton').addEventListener('click', async (event
     const nickname = document.getElementById('nickname').value;
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const group = document.getElementById('group').value;
     
     const role = 'student'; 
 
@@ -23,12 +24,12 @@ document.getElementById('registerButton').addEventListener('click', async (event
         return;
     }
 
-    const response = await fetch('/register', {
+      const response = await fetch('/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ nickname, email, password, role })
+        body: JSON.stringify({ nickname, email, password, role, group })
     });
 
     const data = await response.json();

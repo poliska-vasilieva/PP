@@ -21,6 +21,7 @@ async function fetchUsers() {
         }
 
         currentUsers = await response.json();
+        // Убедитесь, что группа включена в ответ
         renderUsers(currentUsers);
     } catch (error) {
         console.error('Ошибка:', error);
@@ -50,7 +51,7 @@ function renderUsers(users, roleFilter = 'all') {
 
     if (filteredUsers.length === 0) {
         const row = document.createElement('tr');
-        row.innerHTML = `<td colspan="4" style="text-align: center;">Нет пользователей</td>`;
+        row.innerHTML = `<td colspan="5" style="text-align: center;">Нет пользователей</td>`;
         userTableBody.appendChild(row);
         return;
     }
@@ -61,6 +62,7 @@ function renderUsers(users, roleFilter = 'all') {
             <td>${user.nickname || 'Не указано'}</td>
             <td>${user.email || 'Не указано'}</td>
             <td>${getRoleName(user.role)}</td>
+            <td>${user.group || 'Не указана'}</td>
             <td>
                 ${user.role !== 'admin' 
                     ? `<button class="action-btn edit-btn" onclick="openEditModal(${user.id})">Редактировать</button>
@@ -118,6 +120,7 @@ function sortTable(columnIndex) {
             case 0: keyA = a.nickname?.toLowerCase() || ''; keyB = b.nickname?.toLowerCase() || ''; break;
             case 1: keyA = a.email?.toLowerCase() || ''; keyB = b.email?.toLowerCase() || ''; break;
             case 2: keyA = a.role; keyB = b.role; break;
+            case 3: keyA = a.group || 'zzz'; keyB = b.group || 'zzz'; break;
             default: return 0;
         }
 
@@ -148,15 +151,25 @@ function openEditModal(userId) {
     if (!user) return;
 
     document.getElementById('editUserId').value = user.id;
-    document.getElementById('editUserName').value = user.nickname;
-    document.getElementById('editUserEmail').value = user.email;
+    document.getElementById('editUserName').value = user.nickname || '';
+    document.getElementById('editUserEmail').value = user.email || '';
     
     const roleSelect = document.getElementById('editUserRole');
+    const groupSelect = document.getElementById('editUserGroup');
+    
     roleSelect.value = user.role;
     
-    const adminOption = roleSelect.querySelector('option[value="admin"]');
-    if (adminOption) {
-        adminOption.hidden = localStorage.getItem('role') !== 'admin';
+    // Обработчик изменения роли
+    roleSelect.onchange = function() {
+        groupSelect.style.display = this.value === 'student' ? 'block' : 'none';
+    };
+    
+    // Установка начального состояния группы
+    if (user.role === 'student') {
+        groupSelect.style.display = 'block';
+        groupSelect.value = user.group || '';
+    } else {
+        groupSelect.style.display = 'none';
     }
     
     document.getElementById('editUserError').textContent = '';
@@ -168,6 +181,7 @@ async function saveUserChanges() {
     const nickname = document.getElementById('editUserName').value.trim();
     const email = document.getElementById('editUserEmail').value.trim();
     const role = document.getElementById('editUserRole').value;
+    const group = role === 'student' ? document.getElementById('editUserGroup').value : null;
     const token = localStorage.getItem('token');
     const errorElement = document.getElementById('editUserError');
 
@@ -188,7 +202,8 @@ async function saveUserChanges() {
             body: JSON.stringify({
                 nickname,
                 email,
-                role
+                role,
+                group: role === 'student' ? group : undefined
             })
         });
 
