@@ -34,7 +34,7 @@ async function loadCollections(searchTerm = '') {
         }
 
         allCollections = await response.json();
-        displayCollections(allCollections, searchTerm, token, false); // false - не избранные
+        displayCollections(allCollections, searchTerm, token, false);
     } catch (error) {
         console.error('Ошибка:', error);
         showError(error.message);
@@ -45,16 +45,16 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
     const collectionList = document.getElementById('collectionList');
     collectionList.innerHTML = '';
 
-    // Устанавливаем значение в поле поиска
     document.getElementById('searchInput').value = searchTerm;
 
-    // Обновляем табы (если пользователь авторизован)
     if (token) {
+        const decoded = decodeToken(token);
         const tabsContainer = document.getElementById('tabsContainer');
         tabsContainer.innerHTML = `
             <div class="tabs">
                 <button class="tab-button ${!showFavorites ? 'active' : ''}" onclick="showRegularCollections()">Все коллекции</button>
-                <button class="tab-button ${showFavorites ? 'active' : ''}" onclick="showFavoriteCollections()">Избранное</button>
+                ${decoded.role !== 'admin' ?
+                `<button class="tab-button ${showFavorites ? 'active' : ''}" onclick="showFavoriteCollections()">Избранное</button>` : ''}
             </div>
         `;
         tabsContainer.style.display = 'block';
@@ -62,23 +62,21 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
         document.getElementById('tabsContainer').style.display = 'none';
     }
 
-    // Остальной код функции остается без изменений...
-    // Фильтрация по поисковому запросу
-    let filteredCollections = searchTerm 
-        ? collections.filter(c => 
+    let filteredCollections = searchTerm
+        ? collections.filter(c =>
             c.title.toLowerCase().includes(searchTerm.toLowerCase()))
         : collections;
 
-    // Если показываем избранное, фильтруем только приватные коллекции
     if (showFavorites) {
         filteredCollections = filteredCollections.filter(c => !c.isPublic);
     } else {
-        // Иначе показываем только публичные
         filteredCollections = filteredCollections.filter(c => c.isPublic);
     }
 
     if (filteredCollections.length === 0) {
         const noResults = document.createElement('p');
+        noResults.className = 'p__main';
+
         noResults.textContent = showFavorites ? 'Нет избранных коллекций' : 'Коллекции не найдены';
         collectionList.appendChild(noResults);
         return;
@@ -87,14 +85,21 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
     filteredCollections.forEach(collection => {
         const li = document.createElement('li');
         li.className = 'collection-item';
+
+        const token = localStorage.getItem('token');
+        const decoded = token ? decodeToken(token) : {};
+        const isAdmin = decoded.role === 'admin';
+        const isStudent = decoded.role === 'student';
+
         li.innerHTML = `
             <h3 class="h3__main__title">${collection.title}</h3>
             <p class="p__main">${collection.description || 'Без описания'}</p>
             <div class="collection-buttons">
-                <button class="btn-test" onclick="startTest(${collection.id})">Проверить знания</button>
-                ${token && decodeToken(token).role === 'student' && !showFavorites ? 
+                ${!isAdmin ? `<button class="btn-test" onclick="startTest(${collection.id})">Проверить знания</button>` : ''}
+                ${isAdmin ? `<button class="btn-delete" onclick="deleteCollection(${collection.id})">Удалить коллекцию</button>` : ''}
+                ${token && isStudent && !showFavorites ?
                 `<button class="btn-favorite" onclick="addToFavorites(${collection.id})">Добавить в избранное</button>` : ''}
-                ${showFavorites ? 
+                ${showFavorites ?
                 `<button class="btn-remove" onclick="removeFromFavorites(${collection.id})">Удалить из избранного</button>` : ''}
             </div>
         `;
@@ -102,11 +107,41 @@ function displayCollections(collections, searchTerm = '', token = null, showFavo
     });
 }
 
+async function deleteCollection(collectionId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showError('Необходима авторизация');
+        return;
+    }
+
+    const confirmation = confirm('Вы уверены, что хотите удалить эту коллекцию?');
+    if (!confirmation) return;
+
+    try {
+        const response = await fetch(`/collections/${collectionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка при удалении коллекции');
+        }
+
+        showSuccess('Коллекция успешно удалена');
+        loadCollections();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showError(error.message);
+    }
+}
+
 function searchCollections() {
     const token = localStorage.getItem('token');
     const searchTerm = document.getElementById('searchInput').value;
     const isFavoritesTab = document.querySelector('.tab-button:last-child')?.classList.contains('active');
-    
+
     if (isFavoritesTab) {
         showFavoriteCollections();
     } else {
@@ -291,13 +326,31 @@ async function finishTest() {
     document.getElementById('incorrectCount').textContent = incorrectCount;
 
     // Показываем контейнер статистики
-    document.getElementById('statisticsContainer').style.display = 'block';
+    const statsContainer = document.getElementById('statisticsContainer');
+    statsContainer.style.display = 'block';
 
-    // Добавляем список неправильных слов
-    const wrongWordsContainer = document.createElement('div');
-    wrongWordsContainer.className = 'wrong-words-container';
+    // Очищаем предыдущие результаты
+    statsContainer.innerHTML = `
+        <h3 class="h3_history">Результаты теста</h3>
+        <p class="p_history">Правильных ответов: <span id="correctCount">${correctCount}</span></p>
+        <p class="p_history">Неправильных ответов: <span id="incorrectCount">${incorrectCount}</span></p>
+    `;
 
-    if (testResults.incorrectWords.length > 0) {
+    // Создаем контейнер для сообщения о правильных словах
+    const successMessageContainer = document.createElement('div');
+    successMessageContainer.className = 'success-message-container';
+
+    if (testResults.incorrectWords.length === 0) {
+        const noErrors = document.createElement('p');
+        noErrors.className = 'p_history success-message';
+        noErrors.textContent = 'Все слова изучены правильно!';
+        successMessageContainer.appendChild(noErrors);
+        statsContainer.appendChild(successMessageContainer);
+    } else {
+        // Добавляем список неправильных слов
+        const wrongWordsContainer = document.createElement('div');
+        wrongWordsContainer.className = 'wrong-words-container';
+
         const wrongWordsTitle = document.createElement('h4');
         wrongWordsTitle.textContent = 'Слова с ошибками:';
         wrongWordsContainer.appendChild(wrongWordsTitle);
@@ -312,13 +365,8 @@ async function finishTest() {
         });
 
         wrongWordsContainer.appendChild(wrongWordsList);
-    } else {
-        const noErrors = document.createElement('p');
-        noErrors.textContent = 'Все слова изучены правильно!';
-        wrongWordsContainer.appendChild(noErrors);
+        statsContainer.appendChild(wrongWordsContainer);
     }
-
-    document.getElementById('statisticsContainer').appendChild(wrongWordsContainer);
 
     // Сохраняем результаты
     const token = localStorage.getItem('token');

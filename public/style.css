@@ -475,11 +475,13 @@ textarea {
 }
 
 .test-history-item {
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: #fff;
-    border-radius: 5px;
+    padding: 17px;
+    margin: 10px 0;
+    background-color: #F9F9F9;
+    border-radius: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    color: #2C6485;
+    font-size: 20px;
 }
 
 .button_roles {
@@ -502,15 +504,24 @@ textarea {
     margin: 30px 0 0;
 }
 
-.p_history {
+.p_history, .wrong-words-container {
     color: #2C6485;
     font-size: 20px;
     padding: 10px 0;
+    font-weight: 500;
+}
+
+.p__footer {
+    padding: 15px;
+    font-size: 17px;
+    color: #2C6485;
+    text-align: center;
 }
 
 .test-result {
     border: dotted #2C6485 3px;
     padding: 20px;
+    max-width: 300px;
 }
 
 .search-container {
@@ -548,13 +559,13 @@ textarea {
     margin-top: 20px;
 }
 
-.test-result {
+/* .test-result {
     margin: 15px 0;
     padding: 15px;
     background: #fff;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+} */
 
 .test-result h4 {
     color: #2C6485;
@@ -600,7 +611,7 @@ textarea {
     margin: 40px 0;
 }
 
-#studentGroup {
+#studentGroup, #groupDisplay {
     font-size: 23px;
     color: #2C6485;
 }

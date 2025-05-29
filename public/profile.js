@@ -226,14 +226,13 @@ async function loadTestHistory() {
     if (!token) return;
 
     const decoded = decodeToken(token);
-    // Не загружаем историю тестов для администратора
     if (decoded.role === 'admin') {
         document.getElementById('testHistory').style.display = 'none';
         document.querySelector('.h3_history').style.display = 'none';
         return;
     } else {
-        document.getElementById('testHistory').style.display = 'block';
-        document.querySelector('.h3_history').style.display = 'block';
+        document.getElementById('testHistory').style.display = 'flex';
+        document.querySelector('.h3_history').style.display = 'flex';
     }
 
     try {
