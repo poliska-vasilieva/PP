@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000; // Render сам назначает порт
 
 app.use(cors());
 app.use(express.static('public'));
@@ -984,5 +984,5 @@ app.use(errorHandler);
 
 
 app.listen(port, () => {
-    console.log(`Сервер запущен на http://localhost:${port}`);
+  console.log(`Сервер запущен на порту ${port}`);
 });
