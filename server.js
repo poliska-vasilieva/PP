@@ -17,11 +17,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const sequelize = new Sequelize({
-    dialect: 'postgres',
-    host: 'localhost',
-    username: 'postgres',
-    password: 'passsword',
-    database: 'doctorword'
+  dialect: 'postgres',
+  host: 'dpg-d0u1io63jp1c73f87t4g-a.oregon-postgres.render.com', // ✅ Хост из Render
+  username: 'polina',
+  password: 'q2OHdyx0eXY5piZN44W47xrNSqehmuSW',
+  database: 'mybd_6253',
+  port: 5432,
+  dialectOptions: {
+    ssl: { 
+      require: true,
+      rejectUnauthorized: false
+    }
+  }
 });
 const User = sequelize.define('User', {
     nickname: {
