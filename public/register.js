@@ -1,15 +1,15 @@
 document.getElementById('registerButton').addEventListener('click', async (event) => {
     event.preventDefault();
-    const nickname = document.getElementById('nickname').value;
+    const fullname = document.getElementById('fullname').value.trim();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const group = document.getElementById('group').value;
-    
-    const role = 'student'; 
+    const role = 'student';
 
-    const nicknameRegex = /^[A-Za-zА-Яа-яЁё]+\s[A-Za-zА-Яа-яЁё]+$/;
-    if (!nicknameRegex.test(nickname)) {
-        alert("Пожалуйста, введите имя и фамилию");
+    // Проверка формата полного имени: Фамилия Имя Отчество (минимум 2 слова)
+    const fullnameRegex = /^[А-Яа-яЁё]+\s+[А-Яа-яЁё]+(?:\s+[А-Яа-яЁё]+)?$/;
+    if (!fullnameRegex.test(fullname)) {
+        alert("Пожалуйста, введите полное имя в формате: Фамилия Имя Отчество");
         return;
     }
 
@@ -24,12 +24,18 @@ document.getElementById('registerButton').addEventListener('click', async (event
         return;
     }
 
-      const response = await fetch('/register', {
+    const response = await fetch('/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ nickname, email, password, role, group })
+        body: JSON.stringify({ 
+            nickname: fullname, 
+            email, 
+            password, 
+            role, 
+            group 
+        })
     });
 
     const data = await response.json();

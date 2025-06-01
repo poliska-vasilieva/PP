@@ -17,13 +17,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const sequelize = new Sequelize({
-  dialect: 'postgres',
-  host: 'localhost',
-  username: 'postgres',
-  password: 'password',
-  database: 'dara'
+    dialect: 'postgres',
+    host: 'localhost',
+    username: 'postgres',
+    password: 'passsword',
+    database: 'doctorword'
 });
-
 const User = sequelize.define('User', {
     nickname: {
         type: DataTypes.STRING,
@@ -47,7 +46,7 @@ const User = sequelize.define('User', {
         defaultValue: 'student'
     },
     group: {
-        type: DataTypes.ENUM('1', '2', '3'),
+        type: DataTypes.ENUM('22Л-11', '21к-01', '22ф-02б'),
         allowNull: true // Только для студентов
     }
 });
@@ -182,14 +181,14 @@ app.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        const user = await User.create({ 
-            nickname, 
-            email, 
+        const user = await User.create({
+            nickname,
+            email,
             password: hashedPassword,
-            role: 'student', // Фиксированная роль
+            role: 'student',
             group: group || null
         });
-        
+
         const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
         res.status(201).json({ message: 'Пользователь успешно зарегистрирован!', token });
     } catch (error) {
@@ -276,11 +275,10 @@ app.post('/updateProfile', async (request, response) => {
     }
 });
 
-// Добавьте этот роут перед другими роутами коллекций
 app.get('/collections/:id', async (req, res) => {
     try {
         const collection = await Collection.findByPk(req.params.id, {
-            include: [Card] // Опционально, если нужно включать карточки
+            include: [Card]
         });
 
         if (!collection) {

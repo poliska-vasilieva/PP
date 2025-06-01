@@ -30,13 +30,13 @@ function decodeToken(token) {
     }
 }
 
-function setupRoleButtons(role) {
-    const roles = ['teacher', 'student', 'admin'];
-    roles.forEach(r => {
-        const btn = document.getElementById(`${r}Button`);
-        if (btn) btn.style.display = r === role ? 'block' : 'none';
-    });
-}
+// function setupRoleButtons(role) {
+//     const roles = ['teacher', 'student', 'admin'];
+//     roles.forEach(r => {
+//         const btn = document.getElementById(`${r}Button`);
+//         if (btn) btn.style.display = r === role ? 'block' : 'none';
+//     });
+// }
 
 async function saveProfile(token) {
     const nickname = document.getElementById('nickname').value;
@@ -125,7 +125,7 @@ async function fetchUserProfile(token) {
             const userData = await response.json();
             document.getElementById('nickname').value = userData.nickname || '';
             document.getElementById('email').value = userData.email || '';
-            
+
             // Скрываем группу для преподавателей и администраторов
             const groupInfo = document.getElementById('groupInfo');
             if (decoded.role === 'teacher' || decoded.role === 'admin') {
@@ -181,8 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value;
         const currentPassword = document.getElementById('currentPassword').value;
         const newPassword = document.getElementById('newPassword').value;
-        const group = document.getElementById('group').value;
-
 
         if (!nickname || !email) {
             alert('Имя и электронная почта обязательны для заполнения');
@@ -196,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ nickname, email, currentPassword, newPassword, group })
+                body: JSON.stringify({ nickname, email, currentPassword, newPassword })
             });
 
             if (response.ok) {

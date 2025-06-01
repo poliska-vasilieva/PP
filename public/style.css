@@ -283,11 +283,14 @@ textarea {
 
 #articleList, .articles-list {
     /* border: dotted #2C6485 3px; */
-    /* margin: 30px 0; */
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+.articles-list {
+    margin: 30px 0;
 }
 
 #articleForm {
