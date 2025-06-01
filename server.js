@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const sequelize = new Sequelize({
   dialect: 'postgres',
-  host: 'dpg-d0u1io63jp1c73f87t4g-a.oregon-postgres.render.com', // ✅ Хост из Render
+  host: 'dpg-d0u1io63jp1c73f87t4g-a.oregon-postgres.render.com', 
   username: 'polina',
   password: 'q2OHdyx0eXY5piZN44W47xrNSqehmuSW',
   database: 'mybd_6253',

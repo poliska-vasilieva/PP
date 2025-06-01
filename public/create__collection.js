@@ -21,7 +21,7 @@ async function createCollection() {
     }
 
     try {
-        const response = await fetch('http://localhost:3000/collections', {
+        const response = await fetch('/collections', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ async function loadCollections() {
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     try {
-        const response = await fetch('http://localhost:3000/collections', {
+        const response = await fetch('/collections', {
             headers
         });
 
@@ -120,7 +120,7 @@ async function loadCards(collectionId) {
     document.getElementById('collectionList').style.display = 'none';
 
     try {
-        const response = await fetch(`http://localhost:3000/collections/${collectionId}/cards`);
+        const response = await fetch(`/collections/${collectionId}/cards`);
         if (!response.ok) {
             throw new Error('Ошибка при загрузке карточек');
         }
@@ -153,7 +153,7 @@ async function createCard() {
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/collections/${currentCollectionId}/cards`, {
+        const response = await fetch(`/collections/${currentCollectionId}/cards`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -191,7 +191,7 @@ function goBack() {
 
 async function deleteCard(cardId) {
     try {
-        const response = await fetch(`http://localhost:3000/cards/${cardId}`, {
+        const response = await fetch(`/cards/${cardId}`, {
             method: 'DELETE'
         });
 
@@ -217,7 +217,7 @@ async function editCard(cardId) {
 
     if (newWord && newTranslation) {
         try {
-            const response = await fetch(`http://localhost:3000/cards/${cardId}`, {
+            const response = await fetch(`/cards/${cardId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ word: newWord, translation: newTranslation })
@@ -271,7 +271,7 @@ async function deleteCollection(collectionId) {
     }
 
     try {
-        const response = await fetch(`http://localhost:3000/collections/${collectionId}`, {
+        const response = await fetch(`/collections/${collectionId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -299,7 +299,7 @@ async function editCollection(collectionId) {
 
     try {
         // Загрузка текущих данных коллекции
-        const collectionResponse = await fetch(`http://localhost:3000/collections/${collectionId}`, {
+        const collectionResponse = await fetch(`/collections/${collectionId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -318,7 +318,7 @@ async function editCollection(collectionId) {
 
         if (newTitle) {
             // Отправка обновленных данных на сервер
-            const updateResponse = await fetch(`http://localhost:3000/collections/${collectionId}`, {
+            const updateResponse = await fetch(`/collections/${collectionId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
