@@ -83,6 +83,7 @@ button {
     font-size: 22px;
     color: white;
     padding: 15px;
+    margin-bottom: 10px;
 }
 
 button:hover {
@@ -161,7 +162,7 @@ button:hover {
     align-items: center;
     gap: 15px;
     font-size: 23px;
-    width: 250px;
+    max-width: 250px;
 }
 
 .modal {
@@ -242,7 +243,7 @@ ul {
     justify-content: space-between;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 40px;
+    gap: 30px;
 }
 
 .proverka {
@@ -282,7 +283,6 @@ textarea {
 }
 
 #articleList, .articles-list {
-    /* border: dotted #2C6485 3px; */
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -547,11 +547,12 @@ textarea {
     background: #f9f9f9;
     padding: 20px;
     border-radius: 30px;
-    box-shadow: 10px 10px 20px 0px rgb(0 0 0 / 50%);
+    box-shadow: 10px 10px 20px 0px rgb(44 100 133);
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    max-width: 280px;
 }
 
 .student-profile {
@@ -707,6 +708,10 @@ textarea {
     gap: 15px;
 }
 
+.logo__header {
+    max-width: 50%;
+}
+
 @media screen and (max-width: 1024px) {
 
     .container {
@@ -715,6 +720,7 @@ textarea {
 
     .index__main__blocks {
         flex-direction: column;
+        gap: 20px;
     }
     .index__main__logo {
         display: none;
@@ -729,7 +735,7 @@ textarea {
     }
 
     button {
-        font-size: 23px;
+        font-size: 21px;
     }
 
     .register__login {
@@ -747,6 +753,35 @@ textarea {
     .slide img {
         max-width: 420px;
     }
+
+    .header__links {
+    gap: 60px;
+    }
+
+    .logo__header {
+    max-width: 40%;
+    }
+
+    .header__cont {
+    margin: 20px 15px;
+    }
+
+    .inp {
+    width: 320px;
+    }
+
+    .slide__main, .slide__create__coll, .article__slide, .slide__students, .slide__users {
+    margin: 30px 25px;
+    padding: 30px 0;
+    }
+
+    .user-table th, .user-table td {
+    font-size: 16px;
+    }
+
+    #collectionList {
+    gap: 20px;
+}
 }
 
 @media screen and (max-width: 768px) {
@@ -758,6 +793,27 @@ textarea {
         max-width: 280px;
     }
     
+    .buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    }
+
+    .filter-controls {
+    display: none;
+    }
+    
+    .user-table {
+    display: none;
+    }
+
+    #collectionList {
+        gap: 15px;
+    }
+
+    .slider-container {
+    width: 100%;
+}
 }
 
 @media screen and (max-width: 576px) {
@@ -777,5 +833,36 @@ textarea {
 
     .p__slider {
         display: none;
+    }
+
+    .links__for__header {
+    font-size: 19px;
+    }
+
+    .logo__header {
+        display: none;
+    }
+
+    .header__links {
+        gap: 195px;
+    }
+
+    .p__footer {
+    font-size: 14px;
+    }
+
+    .title {
+    font-size: 30px;
+    }
+
+    #collectionList {
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    }
+
+    #collectionList li {
+        border: 2px dotted #2C6485;
+        padding: 10px;
     }
 }
