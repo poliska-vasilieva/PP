@@ -81,7 +81,7 @@ button {
     border-radius: 30px;
     border: none;
     font-size: 22px;
-    color: white;
+    color: #f9f9f9;
     padding: 15px;
     margin-bottom: 10px;
 }
@@ -482,7 +482,7 @@ textarea {
     margin: 10px 0;
     background-color: #F9F9F9;
     border-radius: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 10px 10px 20px 0px rgb(44 100 133);
     color: #2C6485;
     font-size: 20px;
 }
@@ -559,7 +559,7 @@ textarea {
     background: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 10px 10px 20px 0px rgb(0 0 0 / 50%);
+    box-shadow: 10px 10px 20px 0px rgb(44 100 133);
     margin-top: 20px;
 }
 
@@ -711,6 +711,44 @@ textarea {
 .logo__header {
     max-width: 50%;
 }
+
+.flash-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 10px 10px 20px 0px rgb(44 100 133);
+    padding: 20px;
+    font-size: 24px;
+    text-align: center;
+}
+
+.front {
+    background: #f8f9fa;
+}
+
+.back {
+    background: #e9ecef;
+    transform: rotateY(180deg);
+}
+
+.prov__button {
+    display: none;
+    margin-top: 20px;
+}
+
 
 @media screen and (max-width: 1024px) {
 

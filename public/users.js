@@ -39,6 +39,7 @@ function getRoleName(role) {
     return roles[role] || role;
 }
 
+
 function renderUsers(users, roleFilter = 'all') {
     const userTableBody = document.getElementById('userTableBody');
     if (!userTableBody) return;
@@ -62,7 +63,7 @@ function renderUsers(users, roleFilter = 'all') {
             <td>${user.nickname || 'Не указано'}</td>
             <td>${user.email || 'Не указано'}</td>
             <td>${getRoleName(user.role)}</td>
-            <td>${user.group || 'Не указана'}</td>
+            <td>${user.role === 'teacher' ? '—' : (user.group || 'Не указана')}</td>
             <td>
                 ${user.role !== 'admin' 
                     ? `<button class="action-btn edit-btn" onclick="openEditModal(${user.id})">Редактировать</button>
@@ -73,6 +74,7 @@ function renderUsers(users, roleFilter = 'all') {
         userTableBody.appendChild(row);
     });
 }
+
 
 async function deleteUser(userId) {
     const token = localStorage.getItem('token');
@@ -233,13 +235,36 @@ async function createTeacher() {
 
     errorElement.textContent = '';
 
+    // Валидация ФИО (должно быть минимум 2 слова, только буквы и пробелы)
     if (!name || !email || !password) {
         errorElement.textContent = 'Все поля обязательны для заполнения';
         return;
     }
 
-    if (password.length < 8) {
-        errorElement.textContent = 'Пароль должен содержать минимум 8 символов';
+    // Проверка формата ФИО (минимум 2 слова, только буквы, пробелы и дефисы)
+    const nameRegex = /^[А-ЯЁа-яёA-Za-z-]+\s[А-ЯЁа-яёA-Za-z-\s]+$/;
+    if (!nameRegex.test(name)) {
+        errorElement.textContent = 'Введите корректное ФИО (минимум имя и фамилию, только буквы и дефисы)';
+        return;
+    }
+
+    // Проверка формата email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        errorElement.textContent = 'Введите корректный email (например, example@domain.com)';
+        return;
+    }
+
+    // Проверка длины пароля
+    if (password.length < 9) {
+        errorElement.textContent = 'Пароль должен содержать минимум 9 символов';
+        return;
+    }
+
+    // Проверка сложности пароля (минимум 1 цифра и 1 буква)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{9,}$/;
+    if (!passwordRegex.test(password)) {
+        errorElement.textContent = 'Пароль должен содержать минимум 1 букву и 1 цифру';
         return;
     }
 

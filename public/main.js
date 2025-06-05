@@ -245,6 +245,8 @@ async function addToFavorites(collectionId) {
     }
 }
 
+// ... (остальной код остается без изменений до функции startTest)
+
 async function startTest(collectionId) {
     try {
         const token = localStorage.getItem('token');
@@ -271,14 +273,82 @@ async function startTest(collectionId) {
 
         document.getElementById('checkSection').style.display = 'block';
         document.getElementById('collectionList').style.display = 'none';
+        document.getElementById('statisticsContainer').style.display = 'none';
 
-        // Обработчик для показа перевода
+        // Стилизация flash-карты
         const checkCard = document.getElementById('checkCard');
-        checkCard.style.cursor = 'pointer';
-        checkCard.onclick = function () {
-            const card = currentCards[currentCardIndex];
-            document.getElementById('translation').textContent = `Перевод: ${card.translation}`;
-            document.getElementById('translation').style.display = 'block';
+        checkCard.style.cssText = `
+            width: 300px;
+            height: 200px;
+            margin: 20px auto;
+            perspective: 1000px;
+            cursor: pointer;
+            position: relative;
+        `;
+
+        // Очищаем предыдущее содержимое
+        checkCard.innerHTML = '';
+
+        // Создаем контейнер для flash-карты
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'flash-card';
+        cardContainer.style.cssText = `
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        `;
+
+        // Создаем лицевую сторону (слово)
+        const frontFace = document.createElement('div');
+        frontFace.className = 'card-face front';
+        frontFace.style.cssText = `
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 10px 10px 20px 0px rgb(44 100 133);
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+        `;
+
+        // Создаем обратную сторону (перевод)
+        const backFace = document.createElement('div');
+        backFace.className = 'card-face back';
+        backFace.style.cssText = `
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgb(195 222 237 / 40%);
+            border-radius: 10px;
+            box-shadow: 10px 10px 20px 0px rgb(44 100 133);
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+            transform: rotateY(180deg);
+        `;
+
+        // Добавляем стороны в контейнер
+        cardContainer.appendChild(frontFace);
+        cardContainer.appendChild(backFace);
+        checkCard.appendChild(cardContainer);
+
+        // Обработчик клика для переворота карточки
+        let isFlipped = false;
+        checkCard.onclick = function() {
+            isFlipped = !isFlipped;
+            cardContainer.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0)';
         };
 
         showNextCard();
@@ -293,9 +363,35 @@ async function startTest(collectionId) {
 function showNextCard() {
     if (currentCardIndex < currentCards.length) {
         const card = currentCards[currentCardIndex];
-        document.getElementById('checkCard').innerText = card.word;
-        document.getElementById('translation').textContent = '';
-        document.getElementById('translation').style.display = 'none';
+        const cardContainer = document.querySelector('.flash-card');
+        
+        // Устанавливаем слово на лицевую сторону
+        const frontFace = document.querySelector('.front');
+        frontFace.textContent = card.word;
+        
+        // Устанавливаем перевод на обратную сторону
+        const backFace = document.querySelector('.back');
+        backFace.textContent = card.translation;
+        
+        // Сбрасываем состояние переворота
+        cardContainer.style.transform = 'rotateY(0)';
+        
+        // Скрываем кнопки проверки, пока карточка не перевернута
+        document.querySelector('.prov__button').style.display = 'none';
+        
+        // Показываем кнопки после первого переворота
+        let isFirstFlip = true;
+        document.getElementById('checkCard').onclick = function() {
+            const cardContainer = document.querySelector('.flash-card');
+            const isFlipped = cardContainer.style.transform === 'rotateY(180deg)';
+            
+            if (!isFlipped && isFirstFlip) {
+                document.querySelector('.prov__button').style.display = 'block';
+                isFirstFlip = false;
+            }
+            
+            cardContainer.style.transform = isFlipped ? 'rotateY(0)' : 'rotateY(180deg)';
+        };
     } else {
         finishTest();
     }

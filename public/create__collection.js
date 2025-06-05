@@ -70,14 +70,15 @@ async function loadCollections() {
             userRole = decoded.role;
         }
 
-        collections.forEach(collection => {
+        // Фильтруем коллекции для преподавателя - показываем только его
+        const filteredCollections = userRole === 'teacher' 
+            ? collections.filter(collection => collection.userId === userId)
+            : collections;
+
+        filteredCollections.forEach(collection => {
             const li = document.createElement('li');
             li.textContent = `${collection.title} - ${collection.description || 'без описания'}`;
 
-            // Показываем кнопку редактирования только если:
-            // 1. Это админ
-            // 2. Это Преподаватель и коллекция его
-            // 3. Это студент и коллекция его (не публичная)
             const canEdit = userRole === 'admin' ||
                 (userRole === 'teacher' && collection.userId === userId) ||
                 (userRole === 'student' && collection.userId === userId && !collection.isPublic);
@@ -89,7 +90,6 @@ async function loadCollections() {
                 li.appendChild(editButton);
             }
 
-            // Кнопка удаления (показываем для своих коллекций или для админа)
             const canDelete = userRole === 'admin' || collection.userId === userId;
             if (canDelete) {
                 const deleteButton = document.createElement('button');
@@ -98,7 +98,6 @@ async function loadCollections() {
                 li.appendChild(deleteButton);
             }
 
-            // Кнопка "Добавить карточки" (показываем если есть права на редактирование)
             if (canEdit) {
                 const addButton = document.createElement('button');
                 addButton.textContent = "Добавить карточки";
