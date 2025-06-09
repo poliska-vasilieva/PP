@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль</title>
+    <title>Создание карточек</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./icons/icon.svg">
     <script src="./create__collection.js" defer></script>
@@ -41,9 +41,11 @@
 
                     <div id="cardSection" style="display:none;">
                         <h2 class="pop">Создание карточек</h2>
-                        <input type="text" id="cardWord" placeholder="Слово">
-                        <input type="text" id="cardTranslation" placeholder="Перевод">
-                        <button onclick="createCard()">Добавить карточку</button>
+                        <div class="cardAdd">
+                            <input type="text" id="cardWord" placeholder="Слово">
+                            <input type="text" id="cardTranslation" placeholder="Перевод">
+                            <button onclick="createCard()">Добавить карточку</button>
+                        </div>
                         <h3 class="pop">Карточки в коллекции</h3>
                         <ul id="cardList"></ul>
                         <button onclick="saveCollection()">Сохранить коллекцию</button>

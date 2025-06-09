@@ -55,7 +55,7 @@ body {
 
 input, select {
     background-color: #C3DEED;
-    width: 300px;
+    max-width: 300px;
     height: 50px;
     border-radius: 30px;
     border: none;
@@ -214,6 +214,7 @@ ul {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 }
 
 .collections {
@@ -235,7 +236,7 @@ ul {
     font-size: 25px;
     text-align: center;
     margin: 20px 0;
-    color: #555991;
+    color: #2C6485;
 }
 
 #collectionList {
@@ -246,6 +247,11 @@ ul {
     gap: 30px;
 }
 
+.cardAdd {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+}
 .proverka {
     display: flex;
     flex-direction: column;
@@ -820,6 +826,7 @@ textarea {
     #collectionList {
     gap: 20px;
 }
+
 }
 
 @media screen and (max-width: 768px) {
@@ -851,6 +858,12 @@ textarea {
 
     .slider-container {
     width: 100%;
+}
+.cardAdd {
+    flex-direction: column;
+}
+#articleForm {
+    flex-direction: column;
 }
 }
 
@@ -903,4 +916,19 @@ textarea {
         border: 2px dotted #2C6485;
         padding: 10px;
     }
+    .button_roles {
+    flex-direction: column;
+    gap: 10px;
+}
+
+.create {
+    flex-direction: column;
+    gap: 20px;
+}
+
+.students-list {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
 }
