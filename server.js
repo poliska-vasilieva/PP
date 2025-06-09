@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 
 const app = express();
-const port = process.env.PORT || 3000; // Render сам назначает порт
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.static('public'));
@@ -583,7 +583,6 @@ app.get('/collections/:id/check-edit', async (req, res) => {
     }
 });
 
-// Добавьте этот маршрут в server.js
 app.post('/collections/:id/statistics', async (req, res) => {
     try {
         const { correctCount, incorrectCount } = req.body;
@@ -596,8 +595,7 @@ app.post('/collections/:id/statistics', async (req, res) => {
 
 app.get('/collections/:id/statistics', async (req, res) => {
     try {
-        // Здесь можно получать статистику из базы данных
-        res.json({ correct: 0, incorrect: 0 }); // Заглушка - замените реальными данными
+        res.json({ correct: 0, incorrect: 0 }); 
     } catch (error) {
         res.status(500).json({ error: 'Ошибка при получении статистики' });
     }
@@ -851,7 +849,6 @@ app.put('/api/users/:id', async (req, res) => {
     }
 });
 
-// Настройка multer для загрузки изображений
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'public/uploads/');
@@ -862,7 +859,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Получение всех статей
 app.get('/api/articles', async (req, res) => {
     try {
         const articles = await Article.findAll({

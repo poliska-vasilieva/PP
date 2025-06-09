@@ -21,7 +21,6 @@ async function fetchUsers() {
         }
 
         currentUsers = await response.json();
-        // Убедитесь, что группа включена в ответ
         renderUsers(currentUsers);
     } catch (error) {
         console.error('Ошибка:', error);
@@ -38,7 +37,6 @@ function getRoleName(role) {
     };
     return roles[role] || role;
 }
-
 
 function renderUsers(users, roleFilter = 'all') {
     const userTableBody = document.getElementById('userTableBody');
@@ -74,7 +72,6 @@ function renderUsers(users, roleFilter = 'all') {
         userTableBody.appendChild(row);
     });
 }
-
 
 async function deleteUser(userId) {
     const token = localStorage.getItem('token');
@@ -161,12 +158,10 @@ function openEditModal(userId) {
     
     roleSelect.value = user.role;
     
-    // Обработчик изменения роли
     roleSelect.onchange = function() {
         groupSelect.style.display = this.value === 'student' ? 'block' : 'none';
     };
     
-    // Установка начального состояния группы
     if (user.role === 'student') {
         groupSelect.style.display = 'block';
         groupSelect.value = user.group || '';
@@ -174,7 +169,6 @@ function openEditModal(userId) {
         groupSelect.style.display = 'none';
     }
     
-    document.getElementById('editUserError').textContent = '';
     document.getElementById('editUserModal').style.display = 'block';
 }
 
@@ -185,12 +179,9 @@ async function saveUserChanges() {
     const role = document.getElementById('editUserRole').value;
     const group = role === 'student' ? document.getElementById('editUserGroup').value : null;
     const token = localStorage.getItem('token');
-    const errorElement = document.getElementById('editUserError');
-
-    errorElement.textContent = '';
 
     if (!nickname || !email || !role) {
-        errorElement.textContent = 'Все поля обязательны для заполнения';
+        alert('Все поля обязательны для заполнения');
         return;
     }
 
@@ -218,7 +209,7 @@ async function saveUserChanges() {
         await fetchUsers();
     } catch (error) {
         console.error('Ошибка:', error);
-        errorElement.textContent = error.message;
+        alert(error.message);
     }
 }
 
@@ -231,40 +222,32 @@ async function createTeacher() {
     const email = document.getElementById('teacherEmail').value.trim();
     const password = document.getElementById('teacherPassword').value.trim();
     const token = localStorage.getItem('token');
-    const errorElement = document.getElementById('teacherFormError');
 
-    errorElement.textContent = '';
-
-    // Валидация ФИО (должно быть минимум 2 слова, только буквы и пробелы)
     if (!name || !email || !password) {
-        errorElement.textContent = 'Все поля обязательны для заполнения';
+        alert('Все поля обязательны для заполнения');
         return;
     }
 
-    // Проверка формата ФИО (минимум 2 слова, только буквы, пробелы и дефисы)
     const nameRegex = /^[А-ЯЁа-яёA-Za-z-]+\s[А-ЯЁа-яёA-Za-z-\s]+$/;
     if (!nameRegex.test(name)) {
-        errorElement.textContent = 'Введите корректное ФИО (минимум имя и фамилию, только буквы и дефисы)';
+        alert('Введите корректное ФИО (минимум имя и фамилию, только буквы и дефисы)');
         return;
     }
 
-    // Проверка формата email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        errorElement.textContent = 'Введите корректный email (например, example@domain.com)';
+        alert('Введите корректный email');
         return;
     }
 
-    // Проверка длины пароля
     if (password.length < 9) {
-        errorElement.textContent = 'Пароль должен содержать минимум 9 символов';
+        alert('Пароль должен содержать минимум 9 символов');
         return;
     }
 
-    // Проверка сложности пароля (минимум 1 цифра и 1 буква)
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{9,}$/;
     if (!passwordRegex.test(password)) {
-        errorElement.textContent = 'Пароль должен содержать минимум 1 букву и 1 цифру';
+        alert('Пароль должен содержать минимум 1 букву и 1 цифру');
         return;
     }
 
@@ -294,7 +277,7 @@ async function createTeacher() {
         await fetchUsers();
     } catch (error) {
         console.error('Ошибка:', error);
-        errorElement.textContent = error.message;
+        alert(error.message);
     }
 }
 
