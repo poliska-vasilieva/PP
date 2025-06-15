@@ -546,6 +546,7 @@ textarea {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 15px;
     justify-content: space-between;
 }
 
@@ -755,7 +756,9 @@ textarea {
     margin-top: 20px;
 }
 
-
+.logo-mobile {
+  display: none;
+}
 @media screen and (max-width: 1024px) {
 
     .container {
@@ -865,6 +868,19 @@ textarea {
 #articleForm {
     flex-direction: column;
 }
+
+.article-card, .article-item {
+    flex-direction: column;
+}
+
+.naming {
+    font-size: 35px;
+}
+.coll-item {
+    flex-direction: column;
+}
+
+
 }
 
 @media screen and (max-width: 576px) {
@@ -890,12 +906,8 @@ textarea {
     font-size: 19px;
     }
 
-    .logo__header {
-        display: none;
-    }
-
     .header__links {
-        gap: 150px;
+        gap: 80px;
     }
 
     .p__footer {
@@ -929,6 +941,17 @@ textarea {
 .students-list {
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    
 }
+  .logo-desktop {
+    display: none;
+  }
+  .logo-mobile {
+    display: block;
+    max-width: 50px;
+  }
+
+  .test-history {
+    flex-direction: column;
+  }
 }
