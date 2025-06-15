@@ -245,7 +245,6 @@ async function addToFavorites(collectionId) {
     }
 }
 
-// ... (остальной код остается без изменений до функции startTest)
 
 async function startTest(collectionId) {
     try {
@@ -365,6 +364,10 @@ function showNextCard() {
         const card = currentCards[currentCardIndex];
         const cardContainer = document.querySelector('.flash-card');
         
+        // Сбрасываем анимацию и показываем переднюю сторону (латинское слово)
+        cardContainer.style.transform = 'rotateY(0)';
+        cardContainer.style.transition = 'none'; 
+        
         // Устанавливаем слово на лицевую сторону
         const frontFace = document.querySelector('.front');
         frontFace.textContent = card.word;
@@ -373,20 +376,21 @@ function showNextCard() {
         const backFace = document.querySelector('.back');
         backFace.textContent = card.translation;
         
-        // Сбрасываем состояние переворота
-        cardContainer.style.transform = 'rotateY(0)';
-        
-        // Скрываем кнопки проверки, пока карточка не перевернута
+        // Скрываем кнопки проверки
         document.querySelector('.prov__button').style.display = 'none';
         
-        // Показываем кнопки после первого переворота
+        // Включаем анимацию обратно после небольшой задержки
+        setTimeout(() => {
+            cardContainer.style.transition = 'transform 0.6s';
+        }, 10);
+        
+        // Настраиваем обработчик клика для переворота
         let isFirstFlip = true;
         document.getElementById('checkCard').onclick = function() {
-            const cardContainer = document.querySelector('.flash-card');
             const isFlipped = cardContainer.style.transform === 'rotateY(180deg)';
             
             if (!isFlipped && isFirstFlip) {
-                document.querySelector('.prov__button').style.display = 'block';
+                document.querySelector('.prov__button').style.display = 'flex';
                 isFirstFlip = false;
             }
             
@@ -411,8 +415,12 @@ function checkAnswer(isCorrect) {
     }
 
     currentCardIndex++;
-    showNextCard();
+    
+    setTimeout(() => {
+        showNextCard();
+    }, 300);
 }
+
 
 async function finishTest() {
     document.getElementById('checkSection').style.display = 'none';

@@ -120,34 +120,41 @@ async function viewStudentProfile(studentId) {
 
 function displayTestResults(testResults) {
     const resultsContainer = document.getElementById('studentTestResults');
-    resultsContainer.innerHTML = testResults.length === 0 
-        ? '<p class="p_history">Нет данных о тестах</p>'
-        : testResults.map((test, index) => {
-            const testElement = document.createElement('div');
-            testElement.className = 'test-result';
-            testElement.innerHTML = `
-                <h4>${test.Collection?.title || 'Неизвестная коллекция'}</h4>
-                <p class="p_history"><strong>Дата: </strong> ${new Date(test.createdAt).toLocaleString()}</p>
-                <p class="p_history"><strong>Правильных ответов: </strong>${test.correctCount}</p>
-                <p class="p_history"><strong>Ошибок: </strong>${test.incorrectCount}</p>
-            `;
+    resultsContainer.innerHTML = ''; // Очищаем контейнер
+    
+    if (testResults.length === 0) {
+        resultsContainer.innerHTML = '<p class="p_history">Нет данных о тестах</p>';
+        return;
+    }
 
-            if (test.incorrectWords?.length > 0) {
-                const wordsList = document.createElement('ul');
-                wordsList.innerHTML = '<h5>Ошибки:</h5>';
-                test.incorrectWords.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = `${item.word} - ${item.translation}`;
-                    wordsList.appendChild(li);
-                });
-                testElement.appendChild(wordsList);
-            }
+    // Берем только последние 3 результата
+    const recentResults = testResults.slice(-3).reverse(); // Последний тест будет первым в списке
 
-            return testElement;
-        }).reduce((container, element) => {
-            container.appendChild(element);
-            return container;
-        }, document.createDocumentFragment());
+    recentResults.forEach(test => {
+        const testElement = document.createElement('div');
+        testElement.className = 'test-history-item'; // Сохраняем класс стиля
+        
+        testElement.innerHTML = `
+            <p><strong>Коллекция:</strong> ${test.Collection?.title || 'Неизвестная коллекция'}</p>
+            <p><strong>Дата:</strong> ${new Date(test.createdAt).toLocaleString()}</p>
+            <p><strong>Результат:</strong> ${test.correctCount} правильных, ${test.incorrectCount} ошибок</p>
+        `;
+
+        if (test.incorrectWords?.length > 0) {
+            const wordsList = document.createElement('ul');
+            wordsList.className = 'wrong-words-history'; // Сохраняем класс стиля
+            
+            test.incorrectWords.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = `${item.word} - ${item.translation}`;
+                wordsList.appendChild(li);
+            });
+            
+            testElement.appendChild(wordsList);
+        }
+
+        resultsContainer.appendChild(testElement);
+    });
 }
 
 function backToStudentsList() {
