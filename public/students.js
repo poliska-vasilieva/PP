@@ -132,7 +132,7 @@ function displayTestResults(testResults) {
 
     recentResults.forEach(test => {
         const testElement = document.createElement('div');
-        testElement.className = 'test-history-item'; // Сохраняем класс стиля
+        testElement.className = 'test-history-item'; 
         
         testElement.innerHTML = `
             <p><strong>Коллекция:</strong> ${test.Collection?.title || 'Неизвестная коллекция'}</p>
@@ -142,7 +142,7 @@ function displayTestResults(testResults) {
 
         if (test.incorrectWords?.length > 0) {
             const wordsList = document.createElement('ul');
-            wordsList.className = 'wrong-words-history'; // Сохраняем класс стиля
+            wordsList.className = 'wrong-words-history'; 
             
             test.incorrectWords.forEach(item => {
                 const li = document.createElement('li');
